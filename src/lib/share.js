@@ -1,7 +1,14 @@
-import { computeBalances, computePaidTotals, settle, formatMoney } from './settle.js'
+import {
+  computeBalances,
+  computePaidTotals,
+  computeTotal,
+  settle,
+  formatMoney,
+} from './settle.js'
 import { personOf } from './expense.js'
 
-// Builds a plain-text summary of who paid what and who should settle up.
+// Builds a plain-text summary of the expenses, who paid what, and who should
+// settle up — for sharing/copying.
 export function buildSummaryText(state) {
   const { people, expenses } = state
   const nameOf = (id) => personOf(people, id).name
@@ -10,7 +17,21 @@ export function buildSummaryText(state) {
 
   const title = (state.title || '').trim()
   const heading = title ? `EvenUp — ${title}` : 'EvenUp summary'
-  const lines = [heading, '', 'Paid:']
+  const lines = [heading]
+
+  lines.push('', 'Expenses:')
+  if (expenses.length === 0) {
+    lines.push('• No expenses yet')
+  } else {
+    for (const e of expenses) {
+      lines.push(
+        `• ${e.description}: ${formatMoney(e.amount)} (paid by ${nameOf(e.paidById)})`,
+      )
+    }
+    lines.push(`Total: ${formatMoney(computeTotal(expenses))}`)
+  }
+
+  lines.push('', 'Paid:')
   for (const p of people) {
     lines.push(`• ${p.name}: ${formatMoney(paid[p.id] ?? 0)}`)
   }
@@ -20,7 +41,7 @@ export function buildSummaryText(state) {
     lines.push('• Everyone is settled 🎉')
   } else {
     for (const t of txns) {
-      lines.push(`• ${nameOf(t.fromId)} pays ${nameOf(t.toId)} ${formatMoney(t.amount)}`)
+      lines.push(`• ${nameOf(t.fromId)} → ${nameOf(t.toId)}: ${formatMoney(t.amount)}`)
     }
   }
 
