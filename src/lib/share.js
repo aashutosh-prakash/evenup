@@ -1,11 +1,16 @@
-import {
-  computeBalances,
-  computePaidTotals,
-  computeTotal,
-  settle,
-  formatMoney,
-} from './settle.js'
+import { computeBalances, computePaidTotals, computeTotal, settle } from './settle.js'
 import { personOf } from './expense.js'
+
+// Money for the shared text: drop the decimals for whole amounts, keep 2 for
+// fractional ones (e.g. 12000 -> "12,000", 6877.75 -> "6,877.75").
+function money(amount) {
+  const n = Number(amount)
+  const value = Number.isFinite(n) ? n : 0
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })
+}
 
 // Builds a plain-text summary of who paid what and who should settle up —
 // for sharing/copying.
@@ -21,16 +26,18 @@ export function buildSummaryText(state) {
 
   lines.push('', 'Paid:')
   for (const p of people) {
-    lines.push(`• ${p.name}: ${formatMoney(paid[p.id] ?? 0)}`)
+    const amount = paid[p.id] ?? 0
+    // Skip people who didn't pay anything.
+    if (amount > 0) lines.push(`• ${p.name}: ${money(amount)}`)
   }
-  lines.push(`Total expenses: ${formatMoney(computeTotal(expenses))}`)
+  lines.push(`Total expenses: ${money(computeTotal(expenses))}`)
 
   lines.push('', 'Settle up:')
   if (txns.length === 0) {
     lines.push('• Everyone is settled 🎉')
   } else {
     for (const t of txns) {
-      lines.push(`• ${nameOf(t.fromId)} → ${nameOf(t.toId)}: ${formatMoney(t.amount)}`)
+      lines.push(`• ${nameOf(t.fromId)} → ${nameOf(t.toId)}: ${money(t.amount)}`)
     }
   }
 
