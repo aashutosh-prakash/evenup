@@ -18,6 +18,7 @@ export default function App() {
       <header className="app-header">
         <div className="app-title">
           <h1>EvenUp</h1>
+          <p className="tagline">Split shared expenses and settle up.</p>
           <input
             type="text"
             className="title-input"

@@ -8,7 +8,7 @@ export function buildSummaryText(state) {
   const txns = settle(computeBalances(people, expenses))
 
   const title = (state.title || '').trim()
-  const heading = title ? `EvenUp — ${title}` : 'EvenUp — expense summary'
+  const heading = title ? `EvenUp — ${title}` : 'EvenUp summary'
   const lines = [heading, '', 'Paid:']
   for (const p of people) {
     lines.push(`• ${p.name}: ${formatMoney(paid[p.id] ?? 0)}`)
@@ -31,7 +31,9 @@ export function buildSummaryText(state) {
 export async function shareSummary(text) {
   if (navigator.share) {
     try {
-      await navigator.share({ title: 'EvenUp summary', text })
+      // No separate `title` — the heading already lives in `text`, so passing
+      // a title too would show the heading twice in some share targets.
+      await navigator.share({ text })
       return 'shared'
     } catch (err) {
       if (err && err.name === 'AbortError') return 'cancelled'

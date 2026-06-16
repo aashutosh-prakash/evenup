@@ -14,9 +14,12 @@ body { margin: 0; background: #f5f6f8; color: #1c1e21; }
 }
 .app-header h1 { margin: 0; }
 .app-title { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.tagline { margin: 0; color: #666; }
 .title-input {
   font-size: 1.05rem; font-weight: 600; color: #1c1e21;
-  padding: 0.35rem 0.55rem; min-width: 16rem; max-width: 28rem;
+  /* negative margin offsets the padding so the text lines up with the heading */
+  padding: 0.35rem 0.55rem; margin-left: -0.55rem; margin-top: 0.15rem;
+  min-width: 16rem; max-width: 28rem;
   border: 1px solid transparent; border-radius: 8px; background: transparent;
 }
 .title-input::placeholder { color: #9aa0a6; font-weight: 400; }
