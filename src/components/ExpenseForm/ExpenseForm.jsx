@@ -73,23 +73,27 @@ export default function ExpenseForm({ state, dispatch }) {
     setForm({ ...emptyForm, participantIds: state.people.map((p) => p.id) })
   }
 
-  if (state.people.length < MIN_PEOPLE) {
-    return <p className="hint">{peopleNeededHint(state.people.length)}</p>
-  }
+  const enoughPeople = state.people.length >= MIN_PEOPLE
 
   return (
-    <form onSubmit={submit} className="expense-form panel" noValidate>
+    <section className="panel">
       <h2>Add expense</h2>
-      <ExpenseFields
-        values={form}
-        errors={errors}
-        people={state.people}
-        onChange={update}
-        onToggleParticipant={toggleParticipant}
-        fieldRefs={fieldRefs}
-        idPrefix="add"
-      />
-      <button type="submit">Add expense</button>
-    </form>
+      {enoughPeople ? (
+        <form onSubmit={submit} className="expense-form" noValidate>
+          <ExpenseFields
+            values={form}
+            errors={errors}
+            people={state.people}
+            onChange={update}
+            onToggleParticipant={toggleParticipant}
+            fieldRefs={fieldRefs}
+            idPrefix="add"
+          />
+          <button type="submit">Add expense</button>
+        </form>
+      ) : (
+        <p className="hint">{peopleNeededHint(state.people.length)}</p>
+      )}
+    </section>
   )
 }

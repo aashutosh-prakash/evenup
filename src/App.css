@@ -89,6 +89,17 @@ body {
     grid-template-columns: 1fr;
   }
 }
+/* On narrow screens keep the split-name input on the heading row: let it
+   shrink and fill the remaining space instead of wrapping below "EvenUp". */
+@media (max-width: 560px) {
+  .brand-row {
+    flex-wrap: nowrap;
+  }
+  .title-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
 .expenses {
   display: flex;
   flex-direction: column;
@@ -107,6 +118,11 @@ h2 {
 h3 {
   margin: 1rem 0 0.5rem;
   font-size: 0.95rem;
+}
+
+/* Locked sections (not yet usable) stay visible but dimmed */
+.is-upcoming {
+  opacity: 0.55;
 }
 
 /* Generic form controls */

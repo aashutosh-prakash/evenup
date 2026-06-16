@@ -35,7 +35,7 @@ export default function Summary({ state }) {
   const hasExpenses = state.expenses.length > 0
 
   return (
-    <section className="summary panel">
+    <section className={`summary panel${!hasExpenses ? ' is-upcoming' : ''}`}>
       <div className="summary-head">
         <h2>Summary</h2>
         <ShareButton state={state} />

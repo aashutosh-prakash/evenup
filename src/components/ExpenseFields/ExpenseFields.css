@@ -4,7 +4,9 @@
   flex-direction: column;
   gap: 0.25rem;
 }
-.field-label {
+.field-label,
+.expense-form legend,
+.expense-edit legend {
   font-size: 0.85rem;
   color: #555;
 }
@@ -16,6 +18,12 @@
   align-items: center;
   gap: 0.3rem;
   margin-right: 0.8rem;
+}
+/* The "Split among" legend uses .field-label for typography (matching "Paid
+   by"); this only adds the padding that nudges it within the fieldset border. */
+.expense-form legend,
+.expense-edit legend {
+  padding: 0 0.25rem;
 }
 /* The "Split among" fieldset is rendered by this component, so its border
    lives here rather than being duplicated by each parent form. Scoped to the

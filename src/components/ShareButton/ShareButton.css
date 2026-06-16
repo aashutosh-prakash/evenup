@@ -7,6 +7,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  flex: none;
+  white-space: nowrap;
   background: #1e88e5;
   color: #fff;
   border-color: #1e88e5;
