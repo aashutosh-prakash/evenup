@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toCents, fromCents, computeBalances, settle } from './settle.js'
+import { toCents, fromCents, computeBalances, settle, formatMoney } from './settle.js'
 
 describe('money helpers', () => {
   it('toCents rounds to nearest cent', () => {
@@ -75,5 +75,17 @@ describe('settle', () => {
   it('all transaction amounts are positive', () => {
     const txns = settle({ a: 6.66, b: -3.33, c: -3.33 })
     for (const t of txns) expect(t.amount).toBeGreaterThan(0)
+  })
+})
+
+describe('formatMoney', () => {
+  it('formats to 2 decimals with no symbol by default', () => {
+    expect(formatMoney(120, '')).toBe('120.00')
+    expect(formatMoney(10.1, '')).toBe('10.10')
+  })
+
+  it('prefixes the currency symbol when given', () => {
+    expect(formatMoney(120, '₹')).toBe('₹120.00')
+    expect(formatMoney(5, '$')).toBe('$5.00')
   })
 })

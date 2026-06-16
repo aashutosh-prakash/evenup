@@ -69,3 +69,8 @@ export function settle(balances) {
   }
   return txns
 }
+
+// Formats a major-unit amount to 2 decimals, prefixed by an optional symbol.
+export function formatMoney(amount, symbol = '') {
+  return `${symbol}${amount.toFixed(2)}`
+}
