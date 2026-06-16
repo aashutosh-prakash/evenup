@@ -7,8 +7,8 @@ import {
 } from './settle.js'
 import { personOf } from './expense.js'
 
-// Builds a plain-text summary of the expenses, who paid what, and who should
-// settle up — for sharing/copying.
+// Builds a plain-text summary of who paid what and who should settle up —
+// for sharing/copying.
 export function buildSummaryText(state) {
   const { people, expenses } = state
   const nameOf = (id) => personOf(people, id).name
@@ -19,28 +19,11 @@ export function buildSummaryText(state) {
   const heading = title ? `EvenUp — ${title}` : 'EvenUp summary'
   const lines = [heading]
 
-  lines.push('', 'Expenses:')
-  if (expenses.length === 0) {
-    lines.push('• No expenses yet')
-  } else {
-    for (const e of expenses) {
-      const participants = e.participantIds ?? []
-      // Only mention exclusions when someone is actually left out.
-      const excluded = people.filter((p) => !participants.includes(p.id))
-      const exclNote = excluded.length
-        ? `, excluded: ${excluded.map((p) => p.name).join(', ')}`
-        : ''
-      lines.push(
-        `• ${e.description}: ${formatMoney(e.amount)} (paid by ${nameOf(e.paidById)}${exclNote})`,
-      )
-    }
-    lines.push(`Total: ${formatMoney(computeTotal(expenses))}`)
-  }
-
   lines.push('', 'Paid:')
   for (const p of people) {
     lines.push(`• ${p.name}: ${formatMoney(paid[p.id] ?? 0)}`)
   }
+  lines.push(`Total expenses: ${formatMoney(computeTotal(expenses))}`)
 
   lines.push('', 'Settle up:')
   if (txns.length === 0) {
