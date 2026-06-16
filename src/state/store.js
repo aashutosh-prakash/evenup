@@ -15,13 +15,39 @@ export function newId(prefix) {
   return `${prefix}_${counter}_${Math.floor(performance.now())}`
 }
 
+// The smallest non-negative color index not already used by a person, so each
+// person gets a distinct color and a freed index can be reused after removal.
+export function nextColorIndex(people) {
+  const used = new Set(
+    people.map((p) => p.colorIndex).filter((i) => Number.isInteger(i)),
+  )
+  let i = 0
+  while (used.has(i)) i += 1
+  return i
+}
+
+// Assigns a distinct colorIndex to any person missing one (e.g. data written
+// by an older version), preserving indices that are already set.
+function backfillColors(people) {
+  const used = new Set(
+    people.map((p) => p.colorIndex).filter((i) => Number.isInteger(i)),
+  )
+  let next = 0
+  return people.map((p) => {
+    if (Number.isInteger(p.colorIndex)) return p
+    while (used.has(next)) next += 1
+    used.add(next)
+    return { ...p, colorIndex: next }
+  })
+}
+
 export function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return initialState
     const parsed = JSON.parse(raw)
     return {
-      people: Array.isArray(parsed.people) ? parsed.people : [],
+      people: Array.isArray(parsed.people) ? backfillColors(parsed.people) : [],
       expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
     }
   } catch {
@@ -40,7 +66,13 @@ export function saveState(state) {
 export function reducer(state, action) {
   switch (action.type) {
     case 'ADD_PERSON':
-      return { ...state, people: [...state.people, { id: newId('p'), name: action.name }] }
+      return {
+        ...state,
+        people: [
+          ...state.people,
+          { id: newId('p'), name: action.name, colorIndex: nextColorIndex(state.people) },
+        ],
+      }
 
     case 'REMOVE_PERSON':
       return { ...state, people: state.people.filter((p) => p.id !== action.id) }

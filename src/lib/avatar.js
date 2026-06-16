@@ -1,21 +1,21 @@
-// Deterministic avatar color + initials for a person, derived from a stable
-// seed (the person id). Colors never change and don't need to be stored.
+// Avatar color for a person, chosen by a sequential color index (assigned in
+// the store when a person is added). Using golden-angle hue spacing means
+// consecutive indices are ~137.5° apart, so colors assigned in order are always
+// far apart in hue — no near-duplicates. Lightness stays low enough that white
+// text is readable on every hue. There's no fixed palette to exhaust.
+export function avatarColor(index) {
+  const hue = Math.round((index * 137.508) % 360)
+  return `hsl(${hue}deg 62% 42%)`
+}
 
-// Generates an HSL color from the seed across the full hue spectrum. Hue,
-// saturation and lightness are drawn from different parts of the hash so the
-// space is large (~360 × 25 × 6 ≈ 54k combinations) — colors effectively never
-// repeat for any realistic number of people. Lightness is kept low enough that
-// white text stays readable on every hue.
-export function avatarColor(seed) {
+// Fallback only: derive a color index from an id for any person that somehow
+// lacks a stored colorIndex (e.g. data written by an older version).
+export function colorIndexForId(seed) {
   let hash = 0
   for (let i = 0; i < seed.length; i += 1) {
     hash = (hash * 31 + seed.charCodeAt(i)) | 0
   }
-  hash = Math.abs(hash)
-  const hue = hash % 360
-  const saturation = 55 + (Math.floor(hash / 360) % 25) // 55–79%
-  const lightness = 40 + (Math.floor(hash / 9000) % 6) // 40–45%
-  return `hsl(${hue}deg ${saturation}% ${lightness}%)`
+  return Math.abs(hash) % 360
 }
 
 export function initials(name) {
