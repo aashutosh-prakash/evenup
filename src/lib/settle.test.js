@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { toCents, fromCents } from './settle.js'
 import { computeBalances } from './settle.js'
+import { settle } from './settle.js'
 
 describe('money helpers', () => {
   it('toCents rounds to nearest cent', () => {
@@ -47,5 +48,30 @@ describe('computeBalances', () => {
     const bal = computeBalances(people, expenses)
     const sumCents = Object.values(bal).reduce((s, v) => s + Math.round(v * 100), 0)
     expect(sumCents).toBe(0)
+  })
+})
+
+describe('settle', () => {
+  it('returns no transactions when everyone is even', () => {
+    expect(settle({ a: 0, b: 0 })).toEqual([])
+  })
+
+  it('produces a single transaction for one debtor and one creditor', () => {
+    expect(settle({ a: 10, b: -10 })).toEqual([
+      { fromId: 'b', toId: 'a', amount: 10 },
+    ])
+  })
+
+  it('minimizes transactions across multiple parties', () => {
+    const txns = settle({ a: 20, b: -5, c: -15 })
+    expect(txns).toHaveLength(2)
+    const total = txns.reduce((s, t) => s + t.amount, 0)
+    expect(total).toBe(20)
+    for (const t of txns) expect(t.toId).toBe('a')
+  })
+
+  it('all transaction amounts are positive', () => {
+    const txns = settle({ a: 6.66, b: -3.33, c: -3.33 })
+    for (const t of txns) expect(t.amount).toBeGreaterThan(0)
   })
 })

@@ -39,3 +39,33 @@ export function computeBalances(people, expenses) {
   for (const id of Object.keys(cents)) out[id] = fromCents(cents[id])
   return out
 }
+
+// Greedy minimal settlement: repeatedly match the largest creditor with the
+// largest debtor. Input: map of personId -> balance (major units).
+// Output: array of { fromId, toId, amount } with positive amounts.
+export function settle(balances) {
+  const creditors = []
+  const debtors = []
+  for (const [id, bal] of Object.entries(balances)) {
+    const cents = toCents(bal)
+    if (cents > 0) creditors.push({ id, cents })
+    else if (cents < 0) debtors.push({ id, cents: -cents })
+  }
+  creditors.sort((x, y) => y.cents - x.cents)
+  debtors.sort((x, y) => y.cents - x.cents)
+
+  const txns = []
+  let ci = 0
+  let di = 0
+  while (ci < creditors.length && di < debtors.length) {
+    const c = creditors[ci]
+    const d = debtors[di]
+    const pay = Math.min(c.cents, d.cents)
+    txns.push({ fromId: d.id, toId: c.id, amount: fromCents(pay) })
+    c.cents -= pay
+    d.cents -= pay
+    if (c.cents === 0) ci += 1
+    if (d.cents === 0) di += 1
+  }
+  return txns
+}
