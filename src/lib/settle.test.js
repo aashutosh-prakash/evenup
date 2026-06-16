@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toCents, fromCents } from './settle.js'
-import { computeBalances } from './settle.js'
-import { settle } from './settle.js'
+import { toCents, fromCents, computeBalances, settle } from './settle.js'
 
 describe('money helpers', () => {
   it('toCents rounds to nearest cent', () => {
@@ -35,9 +33,9 @@ describe('computeBalances', () => {
       { id: 'e1', amount: 10, paidById: 'a', participantIds: ['c', 'b', 'a'] },
     ]
     const bal = computeBalances(people, expenses)
-    expect(bal.a).toBeCloseTo(6.66, 2)
-    expect(bal.b).toBeCloseTo(-3.33, 2)
-    expect(bal.c).toBeCloseTo(-3.33, 2)
+    expect(bal.a).toBe(6.66)
+    expect(bal.b).toBe(-3.33)
+    expect(bal.c).toBe(-3.33)
   })
 
   it('balances always sum to zero', () => {
@@ -52,6 +50,10 @@ describe('computeBalances', () => {
 })
 
 describe('settle', () => {
+  it('returns no transactions for empty input', () => {
+    expect(settle({})).toEqual([])
+  })
+
   it('returns no transactions when everyone is even', () => {
     expect(settle({ a: 0, b: 0 })).toEqual([])
   })
