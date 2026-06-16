@@ -24,8 +24,14 @@ export function buildSummaryText(state) {
     lines.push('• No expenses yet')
   } else {
     for (const e of expenses) {
+      const participants = e.participantIds ?? []
+      // Only mention exclusions when someone is actually left out.
+      const excluded = people.filter((p) => !participants.includes(p.id))
+      const exclNote = excluded.length
+        ? `, excluded: ${excluded.map((p) => p.name).join(', ')}`
+        : ''
       lines.push(
-        `• ${e.description}: ${formatMoney(e.amount)} (paid by ${nameOf(e.paidById)})`,
+        `• ${e.description}: ${formatMoney(e.amount)} (paid by ${nameOf(e.paidById)}${exclNote})`,
       )
     }
     lines.push(`Total: ${formatMoney(computeTotal(expenses))}`)

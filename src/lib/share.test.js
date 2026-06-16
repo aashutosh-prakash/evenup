@@ -31,6 +31,39 @@ describe('buildSummaryText', () => {
     expect(text).toContain('Pooja → Aashutosh: 50.00')
     // No "pays" wording anymore — settlements use an arrow.
     expect(text).not.toContain('pays')
+    // Everyone is included here, so no "excluded" note.
+    expect(text).not.toContain('excluded')
+  })
+
+  it('notes who is excluded only when someone is left out', () => {
+    const text = buildSummaryText({
+      title: '',
+      people: [
+        { id: 'p1', name: 'Aashutosh' },
+        { id: 'p2', name: 'Pooja' },
+        { id: 'p3', name: 'Prinsa' },
+      ],
+      expenses: [
+        {
+          id: 'e1',
+          description: 'Hotel',
+          amount: 90,
+          paidById: 'p1',
+          participantIds: ['p1', 'p2', 'p3'],
+        },
+        {
+          id: 'e2',
+          description: 'Drinks',
+          amount: 40,
+          paidById: 'p2',
+          participantIds: ['p1', 'p2'],
+        },
+      ],
+    })
+    // Everyone shares the hotel → no note.
+    expect(text).toContain('• Hotel: 90.00 (paid by Aashutosh)')
+    // Prinsa is left out of drinks → noted.
+    expect(text).toContain('• Drinks: 40.00 (paid by Pooja, excluded: Prinsa)')
   })
 
   it('handles the empty case', () => {
