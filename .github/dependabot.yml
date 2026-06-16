@@ -5,8 +5,22 @@ updates:
     schedule:
       interval: weekly
     groups:
+      # Keep react and react-dom together — they must upgrade in lockstep.
+      react:
+        patterns:
+          - react
+          - react-dom
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # React 19 is a deliberate migration, not an automatic bump.
+      - dependency-name: react
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-dom
+        update-types: ['version-update:semver-major']
+      # eslint 10 outpaces eslint-plugin-react's peer range; hold at 9 until it catches up.
+      - dependency-name: eslint
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
