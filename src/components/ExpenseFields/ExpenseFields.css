@@ -19,6 +19,10 @@
   gap: 0.3rem;
   margin-right: 0.8rem;
 }
+/* Checked boxes use the app's dark accent instead of the browser default blue. */
+.check input[type='checkbox'] {
+  accent-color: #1c1e21;
+}
 /* The "Split among" legend uses .field-label for typography (matching "Paid
    by"); this only adds the padding that nudges it within the fieldset border. */
 .expense-form legend,
