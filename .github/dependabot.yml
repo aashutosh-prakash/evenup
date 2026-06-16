@@ -13,13 +13,9 @@ updates:
       dev-dependencies:
         dependency-type: development
     ignore:
-      # React 19 is a deliberate migration, not an automatic bump.
-      - dependency-name: react
-        update-types: ['version-update:semver-major']
-      - dependency-name: react-dom
-        update-types: ['version-update:semver-major']
-      # eslint 10 outpaces eslint-plugin-react's peer range; hold at 9 until it catches up.
-      - dependency-name: eslint
+      # Auto-PR only minor/patch updates; major bumps (React 19, Vite 8,
+      # Vitest 4, the eslint ecosystem, …) are deliberate manual migrations.
+      - dependency-name: '*'
         update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
