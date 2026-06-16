@@ -1,0 +1,31 @@
+/* Stacked form field (Paid by) */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.field-label {
+  font-size: 0.85rem;
+  color: #555;
+}
+.field-input {
+  width: 100%;
+}
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-right: 0.8rem;
+}
+/* The "Split among" fieldset is rendered by this component, so its border
+   lives here rather than being duplicated by each parent form. Scoped to the
+   two forms that wrap ExpenseFields so it doesn't style fieldsets globally. */
+.expense-form fieldset,
+.expense-edit fieldset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.expense-form fieldset[aria-invalid='true'],
+.expense-edit fieldset[aria-invalid='true'] {
+  border-color: var(--neg);
+}

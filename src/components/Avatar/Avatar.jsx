@@ -1,4 +1,5 @@
-import { avatarColor, colorIndexForId, initials } from '../lib/avatar.js'
+import { avatarColor, colorIndexForId, initials } from '../../lib/avatar.js'
+import './Avatar.css'
 
 // A colored circle with the person's initials. `size` is 'sm' or 'md'.
 export default function Avatar({ person, size = 'md' }) {

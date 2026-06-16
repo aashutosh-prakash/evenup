@@ -3,11 +3,30 @@
 // so people get distinct colors with no duplicates until the palette is
 // exhausted. The first 10 are the original well-liked set.
 const PALETTE = [
-  '#e8453c', '#f9a825', '#43a047', '#1e88e5', '#8e24aa',
-  '#00897b', '#fb8c00', '#3949ab', '#d81b60', '#00acc1',
-  '#5e35b1', '#689f38', '#c2185b', '#0097a7', '#f4511e',
-  '#6d4c41', '#546e7a', '#2e7d32', '#ad1457', '#283593',
-  '#00695c', '#7b1fa2', '#d84315', '#0277bd',
+  '#e8453c',
+  '#f9a825',
+  '#43a047',
+  '#1e88e5',
+  '#8e24aa',
+  '#00897b',
+  '#fb8c00',
+  '#3949ab',
+  '#d81b60',
+  '#00acc1',
+  '#5e35b1',
+  '#689f38',
+  '#c2185b',
+  '#0097a7',
+  '#f4511e',
+  '#6d4c41',
+  '#546e7a',
+  '#2e7d32',
+  '#ad1457',
+  '#283593',
+  '#00695c',
+  '#7b1fa2',
+  '#d84315',
+  '#0277bd',
 ]
 
 // Avatar color for a person, by sequential color index. Within the curated
