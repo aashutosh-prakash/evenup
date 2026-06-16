@@ -1,4 +1,4 @@
-// Single source of truth: { people, expenses, currencySymbol }.
+// Single source of truth: { people, expenses }.
 // Persisted as one JSON blob in localStorage.
 
 const STORAGE_KEY = 'evenup.state'
@@ -6,7 +6,6 @@ const STORAGE_KEY = 'evenup.state'
 export const initialState = {
   people: [],
   expenses: [],
-  currencySymbol: '',
 }
 
 // Simple unique id without external deps.
@@ -24,7 +23,6 @@ export function loadState() {
     return {
       people: Array.isArray(parsed.people) ? parsed.people : [],
       expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
-      currencySymbol: typeof parsed.currencySymbol === 'string' ? parsed.currencySymbol : '',
     }
   } catch {
     return initialState
@@ -65,9 +63,6 @@ export function reducer(state, action) {
 
     case 'REMOVE_EXPENSE':
       return { ...state, expenses: state.expenses.filter((e) => e.id !== action.id) }
-
-    case 'SET_CURRENCY':
-      return { ...state, currencySymbol: action.symbol }
 
     default:
       return state

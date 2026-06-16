@@ -79,13 +79,9 @@ describe('settle', () => {
 })
 
 describe('formatMoney', () => {
-  it('formats to 2 decimals with no symbol by default', () => {
-    expect(formatMoney(120, '')).toBe('120.00')
-    expect(formatMoney(10.1, '')).toBe('10.10')
-  })
-
-  it('prefixes the currency symbol when given', () => {
-    expect(formatMoney(120, '₹')).toBe('₹120.00')
-    expect(formatMoney(5, '$')).toBe('$5.00')
+  it('formats a number to 2 decimals', () => {
+    expect(formatMoney(120)).toBe('120.00')
+    expect(formatMoney(10.1)).toBe('10.10')
+    expect(formatMoney(5)).toBe('5.00')
   })
 })

@@ -1,9 +1,29 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const emptyForm = { description: '', amount: '', paidById: '', participantIds: [] }
 
 export default function ExpenseForm({ state, dispatch }) {
   const [form, setForm] = useState(emptyForm)
+  // People we've already offered as checkboxes. Lets us auto-select brand-new
+  // people while preserving any the user has explicitly unchecked.
+  const seenPeople = useRef(new Set())
+
+  useEffect(() => {
+    const ids = new Set(state.people.map((p) => p.id))
+    const fresh = state.people
+      .filter((p) => !seenPeople.current.has(p.id))
+      .map((p) => p.id)
+    setForm((f) => ({
+      ...f,
+      // Drop participants who were removed, append newly-added people.
+      participantIds: [...f.participantIds.filter((id) => ids.has(id)), ...fresh],
+    }))
+    seenPeople.current = ids
+  }, [state.people])
+
+  function allParticipantIds() {
+    return state.people.map((p) => p.id)
+  }
 
   function toggleParticipant(id) {
     setForm((f) => ({
@@ -30,7 +50,8 @@ export default function ExpenseForm({ state, dispatch }) {
       paidById: form.paidById,
       participantIds: form.participantIds,
     })
-    setForm(emptyForm)
+    // Reset, but keep everyone selected by default for the next expense.
+    setForm({ ...emptyForm, participantIds: allParticipantIds() })
   }
 
   if (state.people.length === 0) {

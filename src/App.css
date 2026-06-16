@@ -13,7 +13,7 @@ body { margin: 0; background: #f5f6f8; color: #1c1e21; }
   flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
 }
 .app-header h1 { margin: 0; }
-.currency input { width: 4rem; margin-left: 0.5rem; }
+.tagline { margin: 0; color: #666; }
 
 .panels {
   display: grid;
@@ -23,9 +23,11 @@ body { margin: 0; background: #f5f6f8; color: #1c1e21; }
 }
 @media (max-width: 900px) { .panels { grid-template-columns: 1fr; } }
 
-.panel, .expenses > * {
+.expenses { display: flex; flex-direction: column; gap: 1rem; }
+
+.panel {
   background: #fff; border: 1px solid var(--border);
-  border-radius: 10px; padding: 1rem; margin-bottom: 1rem;
+  border-radius: 10px; padding: 1rem;
 }
 h2 { margin-top: 0; font-size: 1.1rem; }
 h3 { margin: 1rem 0 0.5rem; font-size: 0.95rem; }
@@ -45,9 +47,16 @@ button[type="submit"] { background: #1c1e21; color: #fff; border-color: #1c1e21;
 .expense-form fieldset { border: 1px solid var(--border); border-radius: 6px; }
 .check { display: inline-flex; align-items: center; gap: 0.3rem; margin-right: 0.8rem; }
 
-.expense-item { padding: 0.6rem 0; border-top: 1px solid #eee; }
-.expense-main { display: flex; justify-content: space-between; font-size: 1rem; }
-.expense-meta { color: #666; font-size: 0.85rem; margin: 0.2rem 0 0.4rem; }
+.expense-item { padding: 0.75rem 0; border-top: 1px solid #eee; }
+.expense-item:first-child { border-top: none; padding-top: 0.25rem; }
+.expense-main {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 1rem; font-size: 1rem;
+}
+.expense-desc { min-width: 0; overflow-wrap: anywhere; }
+.expense-amount { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.expense-meta { color: #666; font-size: 0.85rem; margin: 0.25rem 0 0.5rem; }
+.remove-btn { font-size: 0.85rem; }
 
 .balances .pos { color: var(--pos); }
 .balances .neg { color: var(--neg); }

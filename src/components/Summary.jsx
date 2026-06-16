@@ -4,7 +4,6 @@ export default function Summary({ state }) {
   const nameOf = (id) => state.people.find((p) => p.id === id)?.name ?? '(removed)'
   const balances = computeBalances(state.people, state.expenses)
   const txns = settle(balances)
-  const sym = state.currencySymbol
 
   return (
     <section className="summary panel">
@@ -19,7 +18,7 @@ export default function Summary({ state }) {
             bal > 0 ? 'is owed' : bal < 0 ? 'owes' : 'is settled'
           return (
             <li key={p.id} className={cls}>
-              {p.name} {label} {bal !== 0 && formatMoney(Math.abs(bal), sym)}
+              {p.name} {label} {bal !== 0 && formatMoney(Math.abs(bal))}
             </li>
           )
         })}
@@ -31,7 +30,7 @@ export default function Summary({ state }) {
         {txns.length === 0 && <li className="empty">Everyone is settled.</li>}
         {txns.map((t) => (
           <li key={`${t.fromId}-${t.toId}`}>
-            {nameOf(t.fromId)} pays {nameOf(t.toId)} {formatMoney(t.amount, sym)}
+            {nameOf(t.fromId)} pays {nameOf(t.toId)} {formatMoney(t.amount)}
           </li>
         ))}
       </ul>

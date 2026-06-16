@@ -16,16 +16,7 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <h1>EvenUp</h1>
-        <label className="currency">
-          Currency symbol:
-          <input
-            type="text"
-            maxLength={3}
-            value={state.currencySymbol}
-            placeholder="(none)"
-            onChange={(e) => dispatch({ type: 'SET_CURRENCY', symbol: e.target.value })}
-          />
-        </label>
+        <p className="tagline">Split shared expenses and settle up.</p>
       </header>
 
       <main className="panels">

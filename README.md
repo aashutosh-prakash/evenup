@@ -10,7 +10,6 @@ stays in `localStorage` on your device.
 - Equal splitting among the selected participants
 - Live per-person balances
 - Simplified "who pays whom" settlement (fewest transactions)
-- Configurable currency symbol (or none)
 
 ## Run locally
 
