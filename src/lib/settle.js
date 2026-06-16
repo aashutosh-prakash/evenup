@@ -1,7 +1,9 @@
 // All money math is done in integer cents to avoid float drift.
 
 export function toCents(amount) {
-  return Math.round(amount * 100)
+  const n = Number(amount)
+  if (!Number.isFinite(n)) return 0
+  return Math.round(n * 100)
 }
 
 export function fromCents(cents) {
@@ -17,21 +19,26 @@ export function computeBalances(people, expenses) {
   for (const p of people) cents[p.id] = 0
 
   for (const exp of expenses) {
-    const n = exp.participantIds.length
+    const participantIds = Array.isArray(exp.participantIds) ? exp.participantIds : []
+    const n = participantIds.length
     if (n === 0) continue
     const total = toCents(exp.amount)
     if (cents[exp.paidById] !== undefined) cents[exp.paidById] += total
 
-    const base = Math.floor(total / n)
-    let remainder = total - base * n
-    const ordered = [...exp.participantIds].sort()
+    // Split on the magnitude and re-apply the sign so the remainder penny is
+    // distributed consistently even for negative totals (e.g. refunds).
+    const sign = total < 0 ? -1 : 1
+    const abs = Math.abs(total)
+    const base = Math.floor(abs / n)
+    let remainder = abs - base * n
+    const ordered = [...participantIds].sort()
     for (const pid of ordered) {
       let share = base
       if (remainder > 0) {
         share += 1
         remainder -= 1
       }
-      if (cents[pid] !== undefined) cents[pid] -= share
+      if (cents[pid] !== undefined) cents[pid] -= sign * share
     }
   }
 
@@ -40,9 +47,11 @@ export function computeBalances(people, expenses) {
   return out
 }
 
-// Greedy minimal settlement: repeatedly match the largest creditor with the
-// largest debtor. Input: map of personId -> balance (major units).
-// Output: array of { fromId, toId, amount } with positive amounts.
+// Greedy settlement heuristic: repeatedly match the largest creditor with the
+// largest debtor. This keeps the transaction count small and always fully
+// reconciles every balance, but is not guaranteed to be the provable minimum
+// (minimum-transaction settlement is NP-hard). Input: map of personId ->
+// balance (major units). Output: array of { fromId, toId, amount }, positive.
 export function settle(balances) {
   const creditors = []
   const debtors = []
@@ -90,9 +99,19 @@ export function computeTotal(expenses) {
 }
 
 // Formats a major-unit amount to 2 decimals with thousands separators.
-export function formatMoney(amount) {
-  return amount.toLocaleString('en-US', {
+// Coerces non-finite input to 0 so a corrupt amount can never throw in render.
+// Extra `options` are merged into toLocaleString for variants like formatSigned.
+export function formatMoney(amount, options) {
+  const n = Number(amount)
+  return (Number.isFinite(n) ? n : 0).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+    ...options,
   })
+}
+
+// Like formatMoney but always shows an explicit + / − sign (except for zero).
+// Used for net balances where the sign carries meaning (owed vs owes).
+export function formatSigned(amount) {
+  return formatMoney(amount, { signDisplay: 'exceptZero' })
 }
