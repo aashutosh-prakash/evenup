@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { toCents, fromCents, computeBalances, settle, formatMoney } from './settle.js'
+import {
+  toCents,
+  fromCents,
+  computeBalances,
+  settle,
+  computePaidTotals,
+  formatMoney,
+} from './settle.js'
 
 describe('money helpers', () => {
   it('toCents rounds to nearest cent', () => {
@@ -78,10 +85,32 @@ describe('settle', () => {
   })
 })
 
+describe('computePaidTotals', () => {
+  const people = [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }]
+
+  it('returns zero for everyone with no expenses', () => {
+    expect(computePaidTotals(people, [])).toEqual({ a: 0, b: 0 })
+  })
+
+  it('sums the amounts each person paid', () => {
+    const expenses = [
+      { id: 'e1', amount: 30, paidById: 'a', participantIds: ['a', 'b'] },
+      { id: 'e2', amount: 12.5, paidById: 'a', participantIds: ['b'] },
+      { id: 'e3', amount: 8, paidById: 'b', participantIds: ['a', 'b'] },
+    ]
+    expect(computePaidTotals(people, expenses)).toEqual({ a: 42.5, b: 8 })
+  })
+})
+
 describe('formatMoney', () => {
   it('formats a number to 2 decimals', () => {
     expect(formatMoney(120)).toBe('120.00')
     expect(formatMoney(10.1)).toBe('10.10')
     expect(formatMoney(5)).toBe('5.00')
+  })
+
+  it('adds thousands separators', () => {
+    expect(formatMoney(9608)).toBe('9,608.00')
+    expect(formatMoney(1550.5)).toBe('1,550.50')
   })
 })

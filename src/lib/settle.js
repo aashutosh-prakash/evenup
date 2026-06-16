@@ -70,7 +70,22 @@ export function settle(balances) {
   return txns
 }
 
-// Formats a major-unit amount to 2 decimals.
+// Total each person paid across all expenses. Returns personId -> amount.
+export function computePaidTotals(people, expenses) {
+  const cents = {}
+  for (const p of people) cents[p.id] = 0
+  for (const exp of expenses) {
+    if (cents[exp.paidById] !== undefined) cents[exp.paidById] += toCents(exp.amount)
+  }
+  const out = {}
+  for (const id of Object.keys(cents)) out[id] = fromCents(cents[id])
+  return out
+}
+
+// Formats a major-unit amount to 2 decimals with thousands separators.
 export function formatMoney(amount) {
-  return amount.toFixed(2)
+  return amount.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }

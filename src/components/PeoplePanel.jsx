@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { personInUse } from '../state/store.js'
+import Avatar from './Avatar.jsx'
 
 export default function PeoplePanel({ state, dispatch }) {
   const [name, setName] = useState('')
@@ -38,8 +39,11 @@ export default function PeoplePanel({ state, dispatch }) {
       <ul className="list">
         {state.people.map((p) => (
           <li key={p.id} className="row">
-            <span>{p.name}</span>
-            <button type="button" onClick={() => removePerson(p)}>
+            <span className="person">
+              <Avatar person={p} size="sm" />
+              {p.name}
+            </span>
+            <button type="button" className="icon-btn" onClick={() => removePerson(p)}>
               ✕
             </button>
           </li>

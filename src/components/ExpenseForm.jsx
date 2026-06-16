@@ -77,9 +77,10 @@ export default function ExpenseForm({ state, dispatch }) {
         value={form.amount}
         onChange={(e) => setForm({ ...form, amount: e.target.value })}
       />
-      <label>
-        Paid by:
+      <label className="field">
+        <span className="field-label">Paid by</span>
         <select
+          className="field-input"
           value={form.paidById}
           onChange={(e) => setForm({ ...form, paidById: e.target.value })}
         >

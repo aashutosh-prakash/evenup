@@ -1,7 +1,9 @@
 import { formatMoney } from '../lib/settle.js'
+import Avatar from './Avatar.jsx'
 
 export default function ExpenseList({ state, dispatch }) {
-  const nameOf = (id) => state.people.find((p) => p.id === id)?.name ?? '(removed)'
+  const personOf = (id) =>
+    state.people.find((p) => p.id === id) ?? { id, name: '(removed)' }
 
   return (
     <section className="expense-list-section panel">
@@ -17,16 +19,26 @@ export default function ExpenseList({ state, dispatch }) {
                 <span className="expense-amount">{formatMoney(exp.amount)}</span>
               </div>
               <div className="expense-meta">
-                Paid by {nameOf(exp.paidById)} · split among{' '}
-                {exp.participantIds.map(nameOf).join(', ')}
+                <span className="meta-group">
+                  <span className="meta-label">Paid by</span>
+                  <Avatar person={personOf(exp.paidById)} size="sm" />
+                </span>
+                <span className="meta-group">
+                  <span className="meta-label">Split</span>
+                  <span className="avatar-stack">
+                    {exp.participantIds.map((id) => (
+                      <Avatar key={id} person={personOf(id)} size="sm" />
+                    ))}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="remove-btn"
+                  onClick={() => dispatch({ type: 'REMOVE_EXPENSE', id: exp.id })}
+                >
+                  Remove
+                </button>
               </div>
-              <button
-                type="button"
-                className="remove-btn"
-                onClick={() => dispatch({ type: 'REMOVE_EXPENSE', id: exp.id })}
-              >
-                Remove
-              </button>
             </li>
           ))}
         </ul>
