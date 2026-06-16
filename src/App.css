@@ -13,7 +13,15 @@ body { margin: 0; background: #f5f6f8; color: #1c1e21; }
   flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
 }
 .app-header h1 { margin: 0; }
-.tagline { margin: 0.2rem 0 0; color: #666; }
+.app-title { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.title-input {
+  font-size: 1.05rem; font-weight: 600; color: #1c1e21;
+  padding: 0.35rem 0.55rem; min-width: 16rem; max-width: 28rem;
+  border: 1px solid transparent; border-radius: 8px; background: transparent;
+}
+.title-input::placeholder { color: #9aa0a6; font-weight: 400; }
+.title-input:hover { border-color: var(--border); background: #fff; }
+.title-input:focus { border-color: #1e88e5; background: #fff; outline: none; }
 
 .clear-btn { color: var(--neg); border-color: var(--neg); }
 .clear-confirm {

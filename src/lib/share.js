@@ -7,7 +7,9 @@ export function buildSummaryText(state) {
   const paid = computePaidTotals(people, expenses)
   const txns = settle(computeBalances(people, expenses))
 
-  const lines = ['EvenUp — expense summary', '', 'Paid:']
+  const title = (state.title || '').trim()
+  const heading = title ? `EvenUp — ${title}` : 'EvenUp — expense summary'
+  const lines = [heading, '', 'Paid:']
   for (const p of people) {
     lines.push(`• ${p.name}: ${formatMoney(paid[p.id] ?? 0)}`)
   }

@@ -6,6 +6,7 @@ const STORAGE_KEY = 'evenup.state'
 export const initialState = {
   people: [],
   expenses: [],
+  title: '',
 }
 
 // Simple unique id without external deps.
@@ -49,6 +50,7 @@ export function loadState() {
     return {
       people: Array.isArray(parsed.people) ? backfillColors(parsed.people) : [],
       expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
+      title: typeof parsed.title === 'string' ? parsed.title : '',
     }
   } catch {
     return initialState
@@ -96,8 +98,11 @@ export function reducer(state, action) {
     case 'REMOVE_EXPENSE':
       return { ...state, expenses: state.expenses.filter((e) => e.id !== action.id) }
 
+    case 'SET_TITLE':
+      return { ...state, title: action.title }
+
     case 'CLEAR_ALL':
-      return { people: [], expenses: [] }
+      return { people: [], expenses: [], title: '' }
 
     default:
       return state

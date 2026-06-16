@@ -18,7 +18,14 @@ export default function App() {
       <header className="app-header">
         <div className="app-title">
           <h1>EvenUp</h1>
-          <p className="tagline">Split shared expenses and settle up.</p>
+          <input
+            type="text"
+            className="title-input"
+            aria-label="Name this split"
+            placeholder="Name this split (e.g. Goa Trip)"
+            value={state.title}
+            onChange={(e) => dispatch({ type: 'SET_TITLE', title: e.target.value })}
+          />
         </div>
         <ClearDataButton state={state} dispatch={dispatch} />
       </header>
