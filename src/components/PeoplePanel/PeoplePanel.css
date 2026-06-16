@@ -1,0 +1,30 @@
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.list li {
+  padding: 0.4rem 0;
+  border-top: 1px solid #eee;
+}
+.row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+.row input[type='text'] {
+  flex: 1;
+}
+.icon-btn {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.8rem;
+  color: #888;
+}
+.icon-btn:hover {
+  color: var(--neg);
+  border-color: var(--neg);
+}
+.people-notice {
+  margin-top: 0.7rem;
+}

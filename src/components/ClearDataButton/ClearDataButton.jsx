@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import './ClearDataButton.css'
 
 // "Clear all data" with a two-step confirmation so a single click can't
 // accidentally wipe everything. First click arms; the confirm panel must then
@@ -16,8 +17,12 @@ export default function ClearDataButton({ state, dispatch }) {
 
   if (confirming) {
     return (
-      <div className="clear-confirm" role="alertdialog" aria-label="Confirm clearing all data">
-        <span>Delete all people and expenses? This can't be undone.</span>
+      <div
+        className="clear-confirm"
+        role="alertdialog"
+        aria-label="Confirm clearing all data"
+      >
+        <span>Delete all people and expenses? This can&apos;t be undone.</span>
         <button type="button" className="danger" onClick={clearAll}>
           Yes, clear everything
         </button>

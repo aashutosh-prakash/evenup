@@ -1,0 +1,31 @@
+import { render, screen, fireEvent } from '@testing-library/react'
+import PeoplePanel from './PeoplePanel.jsx'
+
+describe('PeoplePanel', () => {
+  it('prompts to add people when empty', () => {
+    render(<PeoplePanel state={{ people: [], expenses: [] }} dispatch={() => {}} />)
+    expect(screen.getByText(/add at least 2 people/i)).toBeInTheDocument()
+  })
+
+  it('dispatches ADD_PERSON with the trimmed name', () => {
+    const dispatch = vi.fn()
+    render(<PeoplePanel state={{ people: [], expenses: [] }} dispatch={dispatch} />)
+    fireEvent.change(screen.getByPlaceholderText('Add a person'), {
+      target: { value: '  Carol  ' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'ADD_PERSON', name: 'Carol' })
+  })
+
+  it('refuses to remove a person who is in an expense, showing a notice', () => {
+    const dispatch = vi.fn()
+    const state = {
+      people: [{ id: 'p1', name: 'Alice' }],
+      expenses: [{ id: 'e1', paidById: 'p1', participantIds: ['p1'] }],
+    }
+    render(<PeoplePanel state={state} dispatch={dispatch} />)
+    fireEvent.click(screen.getByRole('button', { name: '✕' }))
+    expect(screen.getByText(/can't remove alice/i)).toBeInTheDocument()
+    expect(dispatch).not.toHaveBeenCalled()
+  })
+})

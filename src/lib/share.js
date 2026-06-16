@@ -1,9 +1,10 @@
 import { computeBalances, computePaidTotals, settle, formatMoney } from './settle.js'
+import { personOf } from './expense.js'
 
 // Builds a plain-text summary of who paid what and who should settle up.
 export function buildSummaryText(state) {
   const { people, expenses } = state
-  const nameOf = (id) => people.find((p) => p.id === id)?.name ?? '(removed)'
+  const nameOf = (id) => personOf(people, id).name
   const paid = computePaidTotals(people, expenses)
   const txns = settle(computeBalances(people, expenses))
 
@@ -19,7 +20,7 @@ export function buildSummaryText(state) {
     lines.push('• Everyone is settled 🎉')
   } else {
     for (const t of txns) {
-      lines.push(`• ${nameOf(t.fromId)} → ${nameOf(t.toId)}: ${formatMoney(t.amount)}`)
+      lines.push(`• ${nameOf(t.fromId)} pays ${nameOf(t.toId)} ${formatMoney(t.amount)}`)
     }
   }
 

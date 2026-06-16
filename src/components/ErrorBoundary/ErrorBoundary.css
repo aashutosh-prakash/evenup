@@ -1,0 +1,10 @@
+.error-boundary {
+  max-width: 520px;
+  margin: 3rem auto;
+  padding: 1.5rem;
+  text-align: center;
+}
+.error-boundary p {
+  color: #555;
+  line-height: 1.5;
+}

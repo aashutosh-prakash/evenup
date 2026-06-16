@@ -1,0 +1,64 @@
+.expense-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.expense-item {
+  padding: 0.75rem 0;
+  border-top: 1px solid #eee;
+}
+.expense-item:first-child {
+  border-top: none;
+  padding-top: 0.25rem;
+}
+.expense-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 1rem;
+}
+.expense-desc {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.expense-amount {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.expense-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0.4rem 0 0;
+}
+.meta-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.meta-label {
+  color: #888;
+}
+.remove-btn {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--neg);
+  border-color: #e6c9c8;
+}
+.expense-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.link-btn {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  color: #1e88e5;
+  border-color: #c5dcf5;
+}
