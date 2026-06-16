@@ -1,2 +1,54 @@
-:root { font-family: system-ui, sans-serif; }
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+  --border: #d7d9dd;
+  --pos: #137333;
+  --neg: #c5221f;
+}
+* { box-sizing: border-box; }
 body { margin: 0; background: #f5f6f8; color: #1c1e21; }
+
+.app { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
+}
+.app-header h1 { margin: 0; }
+.currency input { width: 4rem; margin-left: 0.5rem; }
+
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 900px) { .panels { grid-template-columns: 1fr; } }
+
+.panel, .expenses > * {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem; margin-bottom: 1rem;
+}
+h2 { margin-top: 0; font-size: 1.1rem; }
+h3 { margin: 1rem 0 0.5rem; font-size: 0.95rem; }
+
+.row { display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.row input[type="text"] { flex: 1; }
+input, select { padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; }
+button { padding: 0.4rem 0.7rem; border: 1px solid var(--border); border-radius: 6px;
+  background: #fff; cursor: pointer; }
+button[type="submit"] { background: #1c1e21; color: #fff; border-color: #1c1e21; }
+
+.list, .balances, .settlements, .expense-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+.list li, .balances li, .settlements li { padding: 0.35rem 0; border-top: 1px solid #eee; }
+.empty, .hint { color: #777; font-style: italic; }
+
+.expense-form { display: flex; flex-direction: column; gap: 0.6rem; }
+.expense-form fieldset { border: 1px solid var(--border); border-radius: 6px; }
+.check { display: inline-flex; align-items: center; gap: 0.3rem; margin-right: 0.8rem; }
+
+.expense-item { padding: 0.6rem 0; border-top: 1px solid #eee; }
+.expense-main { display: flex; justify-content: space-between; font-size: 1rem; }
+.expense-meta { color: #666; font-size: 0.85rem; margin: 0.2rem 0 0.4rem; }
+
+.balances .pos { color: var(--pos); }
+.balances .neg { color: var(--neg); }
+.balances .zero { color: #666; }
