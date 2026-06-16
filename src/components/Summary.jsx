@@ -29,8 +29,8 @@ export default function Summary({ state }) {
       <h3>Settle up</h3>
       <ul className="settlements">
         {txns.length === 0 && <li className="empty">Everyone is settled.</li>}
-        {txns.map((t, i) => (
-          <li key={i}>
+        {txns.map((t) => (
+          <li key={`${t.fromId}-${t.toId}`}>
             {nameOf(t.fromId)} pays {nameOf(t.toId)} {formatMoney(t.amount, sym)}
           </li>
         ))}

@@ -42,14 +42,16 @@ export default function ExpenseForm({ state, dispatch }) {
       <h2>Add expense</h2>
       <input
         type="text"
+        aria-label="Description"
         placeholder="Description"
         value={form.description}
         onChange={(e) => setForm({ ...form, description: e.target.value })}
       />
       <input
         type="number"
-        min="0"
+        min="0.01"
         step="0.01"
+        aria-label="Amount"
         placeholder="Amount"
         value={form.amount}
         onChange={(e) => setForm({ ...form, amount: e.target.value })}
