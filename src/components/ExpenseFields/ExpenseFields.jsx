@@ -81,7 +81,7 @@ export default function ExpenseFields({
         aria-invalid={invalid('participantIds')}
         aria-describedby={describedBy('participantIds')}
       >
-        <legend>Split among</legend>
+        <legend className="field-label">Split among</legend>
         {people.map((p) => (
           <label key={p.id} className="check">
             <input
