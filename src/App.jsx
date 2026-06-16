@@ -4,6 +4,7 @@ import PeoplePanel from './components/PeoplePanel.jsx'
 import ExpenseForm from './components/ExpenseForm.jsx'
 import ExpenseList from './components/ExpenseList.jsx'
 import Summary from './components/Summary.jsx'
+import ClearDataButton from './components/ClearDataButton.jsx'
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, loadState)
@@ -15,8 +16,11 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>EvenUp</h1>
-        <p className="tagline">Split shared expenses and settle up.</p>
+        <div className="app-title">
+          <h1>EvenUp</h1>
+          <p className="tagline">Split shared expenses and settle up.</p>
+        </div>
+        <ClearDataButton state={state} dispatch={dispatch} />
       </header>
 
       <main className="panels">

@@ -64,6 +64,9 @@ export function reducer(state, action) {
     case 'REMOVE_EXPENSE':
       return { ...state, expenses: state.expenses.filter((e) => e.id !== action.id) }
 
+    case 'CLEAR_ALL':
+      return { people: [], expenses: [] }
+
     default:
       return state
   }

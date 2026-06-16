@@ -13,7 +13,15 @@ body { margin: 0; background: #f5f6f8; color: #1c1e21; }
   flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
 }
 .app-header h1 { margin: 0; }
-.tagline { margin: 0; color: #666; }
+.tagline { margin: 0.2rem 0 0; color: #666; }
+
+.clear-btn { color: var(--neg); border-color: var(--neg); }
+.clear-confirm {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem;
+  padding: 0.5rem 0.75rem; border: 1px solid var(--neg); border-radius: 8px;
+  background: #fdeded; font-size: 0.9rem;
+}
+button.danger { background: var(--neg); color: #fff; border-color: var(--neg); }
 
 .panels {
   display: grid;
