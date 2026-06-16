@@ -106,12 +106,11 @@ evenup/
 
 - Expense with 0 participants: blocked by form validation (must select ≥1).
 - Amount must be a positive number; invalid input is rejected by the form.
-- Empty/duplicate person names: trim input; allow duplicates but warn, or
-  block empty names. (Decide during implementation — lean toward blocking empty,
-  allowing duplicates.)
-- Removing a person referenced by expenses: confirm with the user; on confirm,
-  decide policy (block vs. cascade) — lean toward blocking removal while
-  referenced, with a clear message.
+- Person names: trim input; **block empty names**; **allow duplicate names**
+  (people are identified by id, not name).
+- Removing a person referenced by any expense (as payer or participant):
+  **block the removal** and show a clear message telling the user to remove or
+  edit those expenses first.
 - Corrupt/missing localStorage: fall back to empty initial state.
 
 ## Testing
