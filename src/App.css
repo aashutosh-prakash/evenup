@@ -109,6 +109,8 @@ button[type="submit"] { background: #1c1e21; color: #fff; border-color: #1c1e21;
 .summary-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .paid-row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
 .paid-amount { font-variant-numeric: tabular-nums; font-weight: 600; }
+.paid-total { border-top: 2px solid #d7d9dd; margin-top: 0.15rem; font-weight: 700; }
+.paid-total .paid-amount { font-weight: 700; }
 .settlements { display: flex; flex-direction: column; gap: 0.5rem; }
 .settle-row {
   display: flex; align-items: center; gap: 0.5rem;

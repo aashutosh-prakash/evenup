@@ -82,6 +82,13 @@ export function computePaidTotals(people, expenses) {
   return out
 }
 
+// Total of all expense amounts (cent-safe).
+export function computeTotal(expenses) {
+  let cents = 0
+  for (const exp of expenses) cents += toCents(exp.amount)
+  return fromCents(cents)
+}
+
 // Formats a major-unit amount to 2 decimals with thousands separators.
 export function formatMoney(amount) {
   return amount.toLocaleString('en-US', {

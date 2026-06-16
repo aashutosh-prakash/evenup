@@ -1,4 +1,10 @@
-import { computeBalances, computePaidTotals, settle, formatMoney } from '../lib/settle.js'
+import {
+  computeBalances,
+  computePaidTotals,
+  computeTotal,
+  settle,
+  formatMoney,
+} from '../lib/settle.js'
 import Avatar from './Avatar.jsx'
 import ShareButton from './ShareButton.jsx'
 
@@ -6,6 +12,7 @@ export default function Summary({ state }) {
   const personOf = (id) =>
     state.people.find((p) => p.id === id) ?? { id, name: '(removed)' }
   const paid = computePaidTotals(state.people, state.expenses)
+  const total = computeTotal(state.expenses)
   const txns = settle(computeBalances(state.people, state.expenses))
 
   return (
@@ -27,6 +34,12 @@ export default function Summary({ state }) {
           </li>
         ))}
         {state.people.length === 0 && <li className="empty">No people yet.</li>}
+        {state.people.length > 0 && (
+          <li className="paid-row paid-total">
+            <span>Total</span>
+            <span className="paid-amount">{formatMoney(total)}</span>
+          </li>
+        )}
       </ul>
 
       <h3>Settle up</h3>

@@ -5,6 +5,7 @@ import {
   computeBalances,
   settle,
   computePaidTotals,
+  computeTotal,
   formatMoney,
 } from './settle.js'
 
@@ -99,6 +100,21 @@ describe('computePaidTotals', () => {
       { id: 'e3', amount: 8, paidById: 'b', participantIds: ['a', 'b'] },
     ]
     expect(computePaidTotals(people, expenses)).toEqual({ a: 42.5, b: 8 })
+  })
+})
+
+describe('computeTotal', () => {
+  it('is zero with no expenses', () => {
+    expect(computeTotal([])).toBe(0)
+  })
+
+  it('sums all expense amounts cent-safely', () => {
+    const expenses = [
+      { amount: 0.1 },
+      { amount: 0.2 },
+      { amount: 4000 },
+    ]
+    expect(computeTotal(expenses)).toBe(4000.3)
   })
 })
 
