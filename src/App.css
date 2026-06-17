@@ -127,7 +127,11 @@ h3 {
 
 /* Generic form controls */
 input,
-select {
+select,
+textarea {
+  /* iOS Safari auto-zooms when a focused control's font-size is below 16px.
+     Keeping form controls at 16px prevents that jarring zoom on mobile. */
+  font-size: 16px;
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: 6px;
