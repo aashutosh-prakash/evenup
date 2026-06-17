@@ -16,7 +16,11 @@ export default function PWAUpdater() {
     <div className="pwa-toast" role="alert">
       <span className="pwa-toast-msg">A new version of EvenUp is available.</span>
       <div className="pwa-toast-actions">
-        <button type="button" className="pwa-toast-reload" onClick={() => updateServiceWorker(true)}>
+        <button
+          type="button"
+          className="pwa-toast-reload"
+          onClick={() => updateServiceWorker(true)}
+        >
           Reload
         </button>
         <button type="button" onClick={() => setNeedRefresh(false)}>
