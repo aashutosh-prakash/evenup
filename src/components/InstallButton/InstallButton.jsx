@@ -11,18 +11,32 @@ function isStandalone() {
 }
 
 // iOS Safari never fires `beforeinstallprompt`, so we can't trigger a native
-// install. Detect it so we can show manual "Add to Home Screen" instructions.
+// install — install is always the manual "Add to Home Screen" flow.
 function isIos() {
   return /iphone|ipad|ipod/i.test(window.navigator.userAgent)
 }
 
+// Desktop Safari also has no install API; the user installs via File → Add to
+// Dock (Safari 17+). vendor === 'Apple Computer, Inc.' identifies WebKit/Safari,
+// and excluding Chrome/Android/iOS narrows it to Safari on macOS.
+function isDesktopSafari() {
+  const ua = window.navigator.userAgent
+  return (
+    window.navigator.vendor === 'Apple Computer, Inc.' &&
+    /safari/i.test(ua) &&
+    !/chrome|crios|fxios|edg|android/i.test(ua) &&
+    !isIos()
+  )
+}
+
 // "Install app" — only renders when installation is actually possible:
 //  • Chrome/Android: captures `beforeinstallprompt` and fires the native prompt.
-//  • iOS Safari: shows a short Add-to-Home-Screen instruction sheet.
+//  • iOS Safari: a short "Add to Home Screen" instruction sheet.
+//  • Desktop Safari: a short "Add to Dock" instruction sheet.
 // Renders nothing once installed, or where install isn't offered.
 export default function InstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState(null)
-  const [showIosSheet, setShowIosSheet] = useState(false)
+  const [showSheet, setShowSheet] = useState(false)
   const [installed, setInstalled] = useState(() => isStandalone())
 
   useEffect(() => {
@@ -34,7 +48,7 @@ export default function InstallButton() {
     function onInstalled() {
       setInstalled(true)
       setDeferredPrompt(null)
-      setShowIosSheet(false)
+      setShowSheet(false)
     }
     window.addEventListener('beforeinstallprompt', onBeforeInstall)
     window.addEventListener('appinstalled', onInstalled)
@@ -47,11 +61,12 @@ export default function InstallButton() {
   // Already installed — nothing to offer.
   if (installed) return null
 
-  const iosInstallable = isIos() && !isStandalone()
+  // Browsers without a native prompt fall back to manual instructions.
+  const manual = isIos() ? 'ios' : isDesktopSafari() ? 'desktop-safari' : null
 
-  // No native prompt available and not iOS — the browser doesn't support
+  // No native prompt and no manual path — the browser doesn't support
   // installing here, so stay out of the way.
-  if (!deferredPrompt && !iosInstallable) return null
+  if (!deferredPrompt && !manual) return null
 
   async function onClick() {
     if (deferredPrompt) {
@@ -61,7 +76,7 @@ export default function InstallButton() {
       setDeferredPrompt(null)
       return
     }
-    setShowIosSheet(true)
+    setShowSheet(true)
   }
 
   return (
@@ -85,21 +100,31 @@ export default function InstallButton() {
         Install app
       </button>
 
-      {showIosSheet && (
+      {showSheet && (
         <div
           className="install-sheet"
           role="dialog"
-          aria-label="How to install EvenUp on iOS"
+          aria-label="How to install EvenUp"
           onKeyDown={(e) => {
-            if (e.key === 'Escape') setShowIosSheet(false)
+            if (e.key === 'Escape') setShowSheet(false)
           }}
         >
           <p className="install-sheet-title">Install EvenUp</p>
           <p className="install-sheet-body">
-            Tap the <strong>Share</strong> icon in Safari, then choose{' '}
-            <strong>Add to Home Screen</strong>. Opens instantly and works fully offline.
+            {manual === 'ios' ? (
+              <>
+                Tap the <strong>Share</strong> icon in Safari, then choose{' '}
+                <strong>Add to Home Screen</strong>.
+              </>
+            ) : (
+              <>
+                Open the <strong>File</strong> menu in Safari, then choose{' '}
+                <strong>Add to Dock</strong>.
+              </>
+            )}{' '}
+            Opens instantly and works fully offline.
           </p>
-          <button type="button" onClick={() => setShowIosSheet(false)} autoFocus>
+          <button type="button" onClick={() => setShowSheet(false)} autoFocus>
             Got it
           </button>
         </div>

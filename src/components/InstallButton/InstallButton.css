@@ -30,21 +30,22 @@
   flex: none;
 }
 
-/* iOS Add-to-Home-Screen instructions — same lightweight inline panel pattern
-   as ClearDataButton's confirm state (no modal/portal). */
+/* iOS Add-to-Home-Screen instructions. Fixed + viewport-centered (not absolute
+   to the button) so it can never spill past the screen edge and trigger
+   horizontal scroll / layout shift on narrow screens. */
 .install-sheet {
-  position: absolute;
-  bottom: calc(100% + 0.5rem);
+  position: fixed;
   left: 50%;
+  bottom: 1rem;
   transform: translateX(-50%);
-  width: min(20rem, 90vw);
+  width: min(22rem, calc(100vw - 2rem));
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.85rem;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
   text-align: left;
-  z-index: 10;
+  z-index: 100;
 }
 .install-sheet-title {
   margin: 0 0 0.35rem;
