@@ -103,7 +103,7 @@ export function computeTotal(expenses) {
 // Extra `options` are merged into toLocaleString for variants like formatSigned.
 export function formatMoney(amount, options) {
   const n = Number(amount)
-  return (Number.isFinite(n) ? n : 0).toLocaleString('en-US', {
+  return (Number.isFinite(n) ? n : 0).toLocaleString('en-IN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     ...options,
