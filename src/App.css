@@ -13,12 +13,6 @@
 * {
   box-sizing: border-box;
 }
-html {
-  /* Reserve the scrollbar gutter symmetrically so a classic (space-taking)
-     scrollbar — as on some Android browsers — doesn't make the right padding
-     look narrower than the left. No-op where scrollbars are overlays (iOS). */
-  scrollbar-gutter: stable both-edges;
-}
 body {
   margin: 0;
   background: #f5f6f8;
