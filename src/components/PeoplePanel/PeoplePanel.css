@@ -15,6 +15,9 @@
 }
 .row input[type='text'] {
   flex: 1;
+  /* Allow the flexed input to shrink below its intrinsic width so the Add
+     button stays inside the row on narrow screens (flex default is min-width:auto). */
+  min-width: 0;
 }
 .icon-btn {
   padding: 0.2rem 0.45rem;

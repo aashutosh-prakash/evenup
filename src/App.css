@@ -108,6 +108,13 @@ body {
   flex: 1 0 auto;
   align-content: start;
 }
+/* Grid items default to min-width:auto and refuse to shrink below their
+   content's min-content width, so a wide row (e.g. the People input + button)
+   can push a column past its track and eat into the app's right padding.
+   min-width:0 lets the columns honour their track size. */
+.panels > * {
+  min-width: 0;
+}
 @media (max-width: 900px) {
   .panels {
     grid-template-columns: 1fr;
