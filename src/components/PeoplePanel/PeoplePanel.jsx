@@ -44,7 +44,7 @@ export default function PeoplePanel({ state, dispatch }) {
 
   return (
     <section className="people panel">
-      <h2>People</h2>
+      <h2>Members</h2>
       <form onSubmit={addPerson} className="row">
         <input
           type="text"

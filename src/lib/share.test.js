@@ -27,7 +27,7 @@ describe('buildSummaryText', () => {
     expect(text).not.toContain('100.00')
     expect(text).not.toContain('• Pooja: 0') // paid nothing → omitted from Paid
     expect(text).toContain('Total expenses: 100')
-    expect(text).toContain('Settle up:')
+    expect(text).toContain('Settlements:')
     expect(text).toContain('Pooja → Aashutosh: 50') // still appears in settle-up
     // No per-expense list anymore.
     expect(text).not.toContain('Expenses:')

@@ -32,7 +32,7 @@ describe('Summary', () => {
     // Net badges: Alice is owed +50.00, Bob owes -50.00.
     expect(screen.getByText('+50.00')).toBeInTheDocument()
     expect(screen.getByText('-50.00')).toBeInTheDocument()
-    // Settlement names appear in the "Settle up" sentence.
-    expect(screen.getByText('Settle up')).toBeInTheDocument()
+    // Settlement names appear in the "Settlements" sentence.
+    expect(screen.getByText('Settlements')).toBeInTheDocument()
   })
 })

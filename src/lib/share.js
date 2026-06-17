@@ -32,7 +32,7 @@ export function buildSummaryText(state) {
   }
   lines.push(`Total expenses: ${money(computeTotal(expenses))}`)
 
-  lines.push('', 'Settle up:')
+  lines.push('', 'Settlements:')
   if (txns.length === 0) {
     lines.push('• Everyone is settled 🎉')
   } else {
