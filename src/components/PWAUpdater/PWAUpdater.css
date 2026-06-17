@@ -1,0 +1,43 @@
+.pwa-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  width: min(22rem, calc(100vw - 2rem));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: #1c1e21;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+  z-index: 100;
+}
+.pwa-toast-msg {
+  font-size: 0.88rem;
+}
+.pwa-toast-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+.pwa-toast button {
+  min-height: 36px;
+  font-size: 0.82rem;
+  background: transparent;
+  color: #fff;
+  border-color: #4b4e52;
+}
+.pwa-toast button:hover {
+  background: #2b2e31;
+}
+.pwa-toast-reload {
+  background: #1e88e5 !important;
+  border-color: #1e88e5 !important;
+  font-weight: 600;
+}
+.pwa-toast-reload:hover {
+  background: #1769aa !important;
+}

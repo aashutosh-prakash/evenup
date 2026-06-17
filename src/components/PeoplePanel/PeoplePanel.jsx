@@ -48,8 +48,10 @@ export default function PeoplePanel({ state, dispatch }) {
       <form onSubmit={addPerson} className="row">
         <input
           type="text"
+          name="new-person"
           value={name}
           placeholder="Add a person"
+          aria-label="Add a person"
           onChange={(e) => setName(e.target.value)}
         />
         <button type="submit">Add</button>

@@ -1,0 +1,60 @@
+.app-footer {
+  /* Constant gap from the content above; the content area (.panels) grows to
+     push the footer to the bottom of the viewport on short pages. */
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem 1.1rem;
+  text-align: center;
+}
+
+/* Non-interactive trust signals — reassurance, not buttons. */
+.trust-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 0.9rem;
+}
+.trust-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: #80868b;
+}
+.trust-chips svg {
+  flex: none;
+  color: #9aa0a6;
+}
+
+.footer-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem 0.9rem;
+}
+/* Feedback is a quiet text link, not a boxed CTA. */
+.feedback-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: #5f6368;
+  text-decoration: none;
+}
+.feedback-link svg {
+  flex: none;
+  color: #9aa0a6;
+}
+.feedback-link:hover {
+  color: #1c1e21;
+  text-decoration: underline;
+}
