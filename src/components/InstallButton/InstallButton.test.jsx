@@ -2,13 +2,19 @@ import { render, screen, fireEvent, act } from '@testing-library/react'
 import InstallButton from './InstallButton.jsx'
 
 const realUserAgent = window.navigator.userAgent
+const realVendor = window.navigator.vendor
 
 function setUserAgent(value) {
   Object.defineProperty(window.navigator, 'userAgent', { value, configurable: true })
 }
 
+function setVendor(value) {
+  Object.defineProperty(window.navigator, 'vendor', { value, configurable: true })
+}
+
 afterEach(() => {
   setUserAgent(realUserAgent)
+  setVendor(realVendor)
   delete window.matchMedia
 })
 
@@ -52,5 +58,18 @@ describe('InstallButton', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /install evenup app/i }))
     expect(screen.getByRole('dialog', { name: /how to install/i })).toBeInTheDocument()
+    expect(screen.getByText(/add to home screen/i)).toBeInTheDocument()
+  })
+
+  it('shows Add-to-Dock instructions on desktop Safari', () => {
+    setUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+    )
+    setVendor('Apple Computer, Inc.')
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false })
+    render(<InstallButton />)
+
+    fireEvent.click(screen.getByRole('button', { name: /install evenup app/i }))
+    expect(screen.getByText(/add to dock/i)).toBeInTheDocument()
   })
 })
