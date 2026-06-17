@@ -13,6 +13,12 @@
 * {
   box-sizing: border-box;
 }
+html {
+  /* Reserve the scrollbar gutter symmetrically so a classic (space-taking)
+     scrollbar — as on some Android browsers — doesn't make the right padding
+     look narrower than the left. No-op where scrollbars are overlays (iOS). */
+  scrollbar-gutter: stable both-edges;
+}
 body {
   margin: 0;
   background: #f5f6f8;
@@ -159,6 +165,9 @@ textarea {
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: 6px;
+  /* iOS Safari otherwise tints control text with the system accent (blue);
+     pin it to the app's text color. */
+  color: #1c1e21;
 }
 select {
   appearance: none;
@@ -176,6 +185,8 @@ button {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fff;
+  /* Without this iOS Safari renders button text in the system accent (blue). */
+  color: #1c1e21;
   cursor: pointer;
 }
 button[type='submit'] {
