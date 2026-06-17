@@ -159,6 +159,9 @@ textarea {
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: 6px;
+  /* iOS Safari otherwise tints control text with the system accent (blue);
+     pin it to the app's text color. */
+  color: #1c1e21;
 }
 select {
   appearance: none;
@@ -176,6 +179,8 @@ button {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fff;
+  /* Without this iOS Safari renders button text in the system accent (blue). */
+  color: #1c1e21;
   cursor: pointer;
 }
 button[type='submit'] {
