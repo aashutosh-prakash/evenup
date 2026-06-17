@@ -35,6 +35,7 @@ export default function ExpenseFields({
       <input
         ref={fieldRefs.description}
         type="text"
+        name={`${idPrefix}-description`}
         aria-label="Description"
         placeholder="Description"
         value={values.description}
@@ -46,6 +47,7 @@ export default function ExpenseFields({
       <input
         ref={fieldRefs.amount}
         type="number"
+        name={`${idPrefix}-amount`}
         min="0.01"
         step="0.01"
         aria-label="Amount"
@@ -60,6 +62,7 @@ export default function ExpenseFields({
         <span className="field-label">Paid by</span>
         <select
           ref={fieldRefs.paidById}
+          name={`${idPrefix}-paid-by`}
           className="field-input"
           value={values.paidById}
           aria-invalid={invalid('paidById')}
@@ -86,6 +89,7 @@ export default function ExpenseFields({
           <label key={p.id} className="check">
             <input
               type="checkbox"
+              name={`${idPrefix}-participants`}
               checked={values.participantIds.includes(p.id)}
               onChange={() => onToggleParticipant(p.id)}
             />

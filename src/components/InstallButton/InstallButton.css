@@ -1,0 +1,58 @@
+.install {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+}
+
+/* A light, low-emphasis pill — present but not shouting. */
+.install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+  white-space: nowrap;
+  padding: 0.3rem 0.6rem;
+  background: transparent;
+  color: #1e88e5;
+  border: 1px solid #cfe2f5;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.install-btn:hover {
+  background: #eef5fd;
+  border-color: #aecdf0;
+}
+.install-icon {
+  flex: none;
+}
+
+/* iOS Add-to-Home-Screen instructions — same lightweight inline panel pattern
+   as ClearDataButton's confirm state (no modal/portal). */
+.install-sheet {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(20rem, 90vw);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  text-align: left;
+  z-index: 10;
+}
+.install-sheet-title {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+.install-sheet-body {
+  margin: 0 0 0.7rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #444;
+}
