@@ -6,6 +6,10 @@
 .list li {
   padding: 0.4rem 0;
   border-top: 1px solid #eee;
+  /* Reserve a consistent row height so switching a row into edit mode (where
+     the input is taller than plain text) doesn't shift the layout, and give
+     the list a little breathing room. */
+  min-height: 2.6rem;
 }
 .row {
   display: flex;
@@ -19,6 +23,17 @@
      button stays inside the row on narrow screens (flex default is min-width:auto). */
   min-width: 0;
 }
+/* Let the name take the free space and ellipsis when it's too long, instead
+   of pushing the row's action buttons out of view. */
+.list .person {
+  flex: 1;
+  min-width: 0;
+}
+.person-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* Inline rename: avatar + input + the action buttons, filling the row. */
 .person-edit {
   display: flex;
@@ -26,6 +41,11 @@
   gap: 0.5rem;
   flex: 1;
   min-width: 0;
+}
+/* Keep the edit input within the row height so toggling edit doesn't shift it. */
+.rename-input {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
 }
 .row-actions {
   display: inline-flex;

@@ -118,7 +118,7 @@ export default function PeoplePanel({ state, dispatch }) {
             <li key={p.id} className="row">
               <span className="person">
                 <Avatar person={p} size="sm" />
-                {p.name}
+                <span className="person-name">{p.name}</span>
               </span>
               <span className="row-actions">
                 <button
