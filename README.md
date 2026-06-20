@@ -6,22 +6,31 @@ stays in `localStorage` on your device.
 
 ## Features
 
-- **People & expenses** — add people, then expenses (description, amount, who
-  paid, who shares it), with equal splitting among the selected participants.
+- **Members & expenses** — add members (rename them inline anytime), then
+  expenses (description, amount, who paid, who shares it), with equal splitting
+  among the selected participants.
+- **Quick descriptions** — one-tap chips (Food, Drinks, Parking, Toll) prefill
+  common expense names.
 - **Edit inline** — change any expense's description, amount, payer, or split
-  members directly in the list.
-- **Per-person balances** — each person shows a colored net (green when they're
+  members directly in the list; remove a member who isn't used in any expense.
+- **Per-person balances** — each member shows a colored net (green when they're
   owed, red when they owe).
 - **Plain-language settlement** — a greedy "who pays whom" summary that keeps
   the transaction count small and always reconciles fully.
-- **Share** — one tap copies (or, where supported, shares) a clean text
-  summary of who paid what and who should settle up.
+- **Share** — one tap shares a compressed, read-only **link** to the split (a
+  clean view with a "Save a copy to my device" button). The split is encoded in
+  the URL hash, so no server ever sees it. When a split is too large to fit in a
+  link, it automatically falls back to copying/sharing a plain-text summary.
 - **Name the split** — give the trip/event a title that rides along in the
-  shared summary.
+  shared link and summary.
+- **Durable storage** — requests persistent storage so the browser won't evict
+  your data; on iOS/Safari (where script-written storage can be cleared after
+  ~a week unused) a footer note nudges you to install the app or save a copy.
 - **Installable (PWA)** — add it to your home screen / install it as an app;
   it works offline-friendly since everything runs client-side.
-- **Resilient** — corrupt saved data is sanitized on load, and an error
-  boundary offers a one-tap "reset data" recovery instead of a blank screen.
+- **Resilient** — corrupt saved (or shared) data is sanitized on load, and an
+  error boundary offers a one-tap "reset data" recovery instead of a blank
+  screen.
 
 ## Run locally
 
@@ -81,7 +90,8 @@ every push and PR.
 src/
   components/<Name>/   each component with its .jsx, .css, and .test.jsx
   hooks/               shared React hooks (useExpenseDraft)
-  lib/                 pure logic: settle math, expense helpers, share text
+  lib/                 pure logic: settle math, expense/avatar helpers, share
+                       text + link (encode/compress), platform/storage helpers
   state/               useReducer store + localStorage persistence
   test/                Vitest setup
   App.jsx / App.css    shell, layout, and global styles
