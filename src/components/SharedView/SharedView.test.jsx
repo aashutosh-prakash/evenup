@@ -23,12 +23,24 @@ describe('SharedView', () => {
   it('shows the title, the expense, and both actions', () => {
     render(<SharedView split={split} onSave={() => {}} onExit={() => {}} />)
 
-    // Title sits beside the brand (not as a heading); "Expenses" is the heading.
+    // Receipt header (store name + split title), an expense line, and a TOTAL.
+    expect(screen.getByText('EvenKar')).toBeInTheDocument()
     expect(screen.getByText('Weekend Trip')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Expenses' })).toBeInTheDocument()
     expect(screen.getByText('Hotel')).toBeInTheDocument()
+    expect(screen.getByText('TOTAL')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /save a copy/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /exit/i })).toBeInTheDocument()
+  })
+
+  it('shows the shared date when sharedAt is present', () => {
+    render(
+      <SharedView
+        split={{ ...split, sharedAt: Date.parse('2026-06-20T16:00:00Z') }}
+        onSave={() => {}}
+        onExit={() => {}}
+      />,
+    )
+    expect(screen.getByText(/2026/)).toBeInTheDocument()
   })
 
   it('shows expenses read-only (no Edit/Remove or Share)', () => {

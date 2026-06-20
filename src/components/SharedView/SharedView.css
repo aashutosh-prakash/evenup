@@ -1,23 +1,9 @@
-/* Read-only shared-link view. Reuses the global .app shell, header, and .panel
-   look; only the banner and read-only expense rows need bespoke styles. */
+/* Read-only shared-link view, styled like a printed receipt. The Save-a-copy /
+   Exit banner sits above the paper; the receipt body is monospace with torn
+   (zigzag) top and bottom edges drawn as crisp inline-SVG backgrounds. */
 
-/* A single read-only column doesn't need the full editor width — keep it a
-   comfortable reading measure so the summary isn't over-stretched on desktop. */
 .app.shared-app {
-  max-width: 640px;
-}
-
-/* The split title sits beside the wordmark, mirroring the editor's title input
-   (but read-only). Match the input's padding + border box so it aligns
-   identically in the flex-end brand row. */
-.shared-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #6b7280;
-  padding: 0.3rem 0.55rem;
-  border: 1px solid transparent;
-  min-width: 0;
-  overflow-wrap: anywhere;
+  max-width: 460px;
 }
 
 .shared-banner {
@@ -56,9 +42,152 @@
   border: 1px solid var(--border);
 }
 
-.shared-main {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/* The receipt "paper". */
+.receipt {
+  position: relative;
+  max-width: 360px;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   flex: 1 0 auto;
+  /* Leave room for the torn edges drawn by ::before / ::after. */
+  margin-top: 11px;
+  margin-bottom: 11px;
+}
+/* Torn zigzag edges: white triangles against the page, crisp at any DPI. */
+.receipt::before,
+.receipt::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11px;
+  background-size: 22px 11px;
+  background-repeat: repeat-x;
+}
+.receipt::before {
+  bottom: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='11'%3E%3Cpolygon points='0,11 11,0 22,11' fill='%23ffffff'/%3E%3C/svg%3E");
+}
+.receipt::after {
+  top: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='11'%3E%3Cpolygon points='0,0 11,11 22,0' fill='%23ffffff'/%3E%3C/svg%3E");
+}
+
+.receipt-body {
+  padding: 1.5rem 1.4rem 1.25rem;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.85rem;
+  color: #1c1e21;
+}
+
+.receipt-store {
+  margin: 0;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.receipt-title {
+  margin: 0.2rem 0 0;
+  text-align: center;
+  font-weight: 600;
+}
+.receipt-sub,
+.receipt-date {
+  margin: 0.1rem 0 0;
+  text-align: center;
+  color: #888;
+  font-size: 0.78rem;
+}
+
+.receipt-rule {
+  border-top: 1.5px solid #1c1e21;
+  margin: 0.9rem 0;
+}
+.receipt-rule.dashed {
+  border-top-style: dashed;
+  border-top-color: #c9c9c9;
+}
+
+.receipt-section {
+  margin: 0 0 0.5rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  color: #888;
+}
+
+.receipt-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 0.18rem 0;
+}
+/* An expense = its amount line + a muted "paid / split" sub-line. */
+.receipt-exp {
+  padding: 0.3rem 0;
+}
+.receipt-exp + .receipt-exp {
+  border-top: 1px dotted #ededed;
+}
+.receipt-exp .receipt-line {
+  padding: 0;
+}
+.receipt-meta {
+  margin: 0.15rem 0 0;
+  padding-left: 0.2rem;
+  font-size: 0.72rem;
+  color: #8a8a8a;
+  overflow-wrap: anywhere;
+}
+.receipt-meta strong {
+  color: #5a5a5a;
+  font-weight: 600;
+}
+.receipt-desc {
+  overflow-wrap: anywhere;
+}
+/* Dotted leader between description and amount. */
+.receipt-dots {
+  flex: 1;
+  margin: 0 0.4rem;
+  border-bottom: 1px dotted #c9c9c9;
+  transform: translateY(-0.25rem);
+}
+.receipt-amt {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.receipt-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.receipt-settled {
+  margin: 0;
+  text-align: center;
+}
+.receipt-empty {
+  margin: 0.5rem 0;
+  text-align: center;
+  color: #888;
+}
+.receipt-thanks {
+  margin: 0;
+  text-align: center;
+  color: #888;
+  letter-spacing: 0.1em;
 }

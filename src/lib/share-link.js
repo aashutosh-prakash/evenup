@@ -24,8 +24,10 @@ const MAX_PAYLOAD_LENGTH = MAX_URL_LENGTH
 const MAX_PEOPLE = 500
 const MAX_EXPENSES = 1000
 
-// Builds the compact wire payload from app state.
-export function encodeSplit(state) {
+// Builds the compact wire payload from app state. `sharedAt` (epoch ms,
+// captured at share time) is embedded purely so the receipt can show when the
+// split was shared; it is not part of the app's persisted state.
+export function encodeSplit(state, sharedAt) {
   const title = typeof state?.title === 'string' ? state.title.trim() : ''
   const people = Array.isArray(state?.people) ? state.people : []
   const expenses = Array.isArray(state?.expenses) ? state.expenses : []
@@ -57,6 +59,7 @@ export function encodeSplit(state) {
     }),
   }
   if (title) payload.t = title
+  if (Number.isFinite(sharedAt)) payload.ts = sharedAt
 
   // Compress to a URL-safe string. The wire format is very repetitive, so this
   // shrinks links dramatically (often 50-90%), letting much larger splits share
@@ -142,6 +145,8 @@ export function decodeSplit(encoded) {
       title: typeof payload.t === 'string' ? payload.t : '',
       people,
       expenses,
+      // Display-only: when the split was shared (epoch ms), or null if absent.
+      sharedAt: Number.isFinite(payload.ts) ? payload.ts : null,
     }
   } catch {
     return null
@@ -150,12 +155,12 @@ export function decodeSplit(encoded) {
 
 // Builds the full shareable URL. Returns null when the split is empty (nothing
 // worth sharing) or when the URL would exceed MAX_URL_LENGTH.
-export function buildShareUrl(state, origin = window.location.origin) {
+export function buildShareUrl(state, origin = window.location.origin, sharedAt) {
   const people = Array.isArray(state?.people) ? state.people : []
   const expenses = Array.isArray(state?.expenses) ? state.expenses : []
   if (people.length === 0 && expenses.length === 0) return null
 
-  const url = `${origin}/#s=${encodeSplit(state)}`
+  const url = `${origin}/#s=${encodeSplit(state, sharedAt)}`
   if (url.length > MAX_URL_LENGTH) return null
   return url
 }
@@ -164,8 +169,12 @@ export function buildShareUrl(state, origin = window.location.origin) {
 // same number of people/expenses) before we hand it out. Returns the URL when
 // the split is "properly composed", or null so the caller can fall back to the
 // plain-text summary (split empty, too large, or — defensively — corrupted).
-export function composeShareUrl(state, origin = window.location.origin) {
-  const url = buildShareUrl(state, origin)
+export function composeShareUrl(
+  state,
+  origin = window.location.origin,
+  sharedAt = Date.now(),
+) {
+  const url = buildShareUrl(state, origin, sharedAt)
   if (!url) return null
   // Verify the payload decompresses back to the same counts, WITHOUT a full
   // decodeSplit (which would mint throwaway ids on every Share click).
