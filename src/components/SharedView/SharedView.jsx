@@ -1,4 +1,3 @@
-import { personOf as findPerson } from '../../lib/expense.js'
 import {
   computeBalances,
   computePaidTotals,
@@ -13,8 +12,10 @@ import './SharedView.css'
 // printed receipt. The Save-a-copy / Exit actions stay above the paper so the
 // receipt itself reads cleanly. Nothing here mutates state.
 export default function SharedView({ split, onSave, onExit }) {
-  const personOf = (id) => findPerson(split.people, id)
-  const title = split.title?.trim() || 'Shared split'
+  // Look people up in O(1); keep the same '(removed)' fallback personOf gives.
+  const byId = new Map(split.people.map((p) => [p.id, p]))
+  const personOf = (id) => byId.get(id) ?? { id, name: '(removed)' }
+  const title = split.title?.trim()
   const paid = computePaidTotals(split.people, split.expenses)
   const total = computeTotal(split.expenses)
   const txns = settle(computeBalances(split.people, split.expenses))
@@ -36,7 +37,7 @@ export default function SharedView({ split, onSave, onExit }) {
       <main className="receipt">
         <div className="receipt-body">
           <p className="receipt-store">EvenKar</p>
-          <p className="receipt-title">{title}</p>
+          {title && <p className="receipt-title">{title}</p>}
           <p className="receipt-sub">· shared split ·</p>
 
           <div className="receipt-rule" />

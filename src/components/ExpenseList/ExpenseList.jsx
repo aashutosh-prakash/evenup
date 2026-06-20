@@ -5,7 +5,7 @@ import Avatar from '../Avatar/Avatar.jsx'
 import ExpenseEditRow from '../ExpenseEditRow/ExpenseEditRow.jsx'
 import './ExpenseList.css'
 
-export default function ExpenseList({ state, dispatch, readOnly = false }) {
+export default function ExpenseList({ state, dispatch }) {
   const [editingId, setEditingId] = useState(null)
   const personOf = (id) => findPerson(state.people, id)
 
@@ -55,26 +55,22 @@ export default function ExpenseList({ state, dispatch, readOnly = false }) {
                           ))}
                         </span>
                       </span>
-                      {!readOnly && (
-                        <span className="expense-actions">
-                          <button
-                            type="button"
-                            className="link-btn"
-                            onClick={() => setEditingId(exp.id)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="remove-btn"
-                            onClick={() =>
-                              dispatch({ type: 'REMOVE_EXPENSE', id: exp.id })
-                            }
-                          >
-                            Remove
-                          </button>
-                        </span>
-                      )}
+                      <span className="expense-actions">
+                        <button
+                          type="button"
+                          className="link-btn"
+                          onClick={() => setEditingId(exp.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="remove-btn"
+                          onClick={() => dispatch({ type: 'REMOVE_EXPENSE', id: exp.id })}
+                        >
+                          Remove
+                        </button>
+                      </span>
                     </div>
                   </>
                 )}
