@@ -21,8 +21,11 @@ export default function App() {
   const [shared, setShared] = useState(readSharedFromHash)
 
   useEffect(() => {
+    // When viewing a shared link we render SharedView and must NOT touch the
+    // viewer's own stored split.
+    if (shared) return
     setSaveFailed(!saveState(state))
-  }, [state])
+  }, [state, shared])
 
   // Re-read the hash if it changes while open (e.g. pasting another link).
   useEffect(() => {

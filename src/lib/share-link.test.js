@@ -1,4 +1,5 @@
 import { afterEach, vi } from 'vitest'
+import LZString from 'lz-string'
 import {
   encodeSplit,
   decodeSplit,
@@ -8,6 +9,10 @@ import {
   shareLink,
   MAX_URL_LENGTH,
 } from './share-link.js'
+
+// Hand-craft a wire string directly from a raw payload (bypassing encodeSplit)
+// to exercise decodeSplit against malicious/malformed input.
+const craft = (payload) => LZString.compressToEncodedURIComponent(JSON.stringify(payload))
 
 const sample = {
   title: 'Goa Trip',
@@ -126,17 +131,38 @@ describe('decodeSplit defensive handling', () => {
     expect(decoded.expenses[0].paidById).toBe('')
   })
 
-  it('drops participant indices that do not map to a person', () => {
-    // Hand-craft a payload that references a participant index out of range.
-    const encoded = encodeSplit({
-      title: '',
-      people: [{ id: 'p1', name: 'A', colorIndex: 0 }],
-      expenses: [],
-    })
-    // Sanity: a clean decode of a real expense keeps only valid participants.
-    const decoded = decodeSplit(encoded)
-    expect(decoded).not.toBeNull()
-    expect(decoded.expenses).toHaveLength(0)
+  it('drops out-of-range participant indices', () => {
+    // Two valid people; expense references index 5 which does not exist.
+    const decoded = decodeSplit(
+      craft({
+        p: [
+          { n: 'A', c: 0 },
+          { n: 'B', c: 1 },
+        ],
+        e: [{ a: 10, p: 0, s: [0, 5, 1] }],
+      }),
+    )
+    const names = (ids) => ids.map((id) => decoded.people.find((p) => p.id === id).name)
+    expect(names(decoded.expenses[0].participantIds)).toEqual(['A', 'B'])
+  })
+
+  it('de-dupes repeated participant indices (so a person is not charged twice)', () => {
+    const decoded = decodeSplit(
+      craft({
+        p: [
+          { n: 'A', c: 0 },
+          { n: 'B', c: 1 },
+        ],
+        e: [{ a: 10, p: 0, s: [0, 1, 1, 0] }],
+      }),
+    )
+    expect(decoded.expenses[0].participantIds).toHaveLength(2)
+    expect(new Set(decoded.expenses[0].participantIds).size).toBe(2)
+  })
+
+  it('returns null for an empty split (so a blank link cannot wipe data)', () => {
+    expect(decodeSplit(craft({}))).toBeNull()
+    expect(decodeSplit(craft({ p: [], e: [] }))).toBeNull()
   })
 
   it('never copies a polluting field from the payload', () => {

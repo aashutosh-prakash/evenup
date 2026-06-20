@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { buildSummaryText, shareSummary } from '../../lib/share.js'
 import { composeShareUrl, shareLink } from '../../lib/share-link.js'
 import './ShareButton.css'
@@ -9,13 +9,27 @@ import './ShareButton.css'
 export default function ShareButton({ state }) {
   const [status, setStatus] = useState('')
   const [busy, setBusy] = useState(false)
+  // One auto-clear timer at a time; cleared before re-arming and on unmount so
+  // overlapping shares can't clear each other early and we never setState after
+  // the component unmounts (e.g. a hashchange swaps the editor for SharedView).
+  const timerRef = useRef(null)
+  useEffect(() => () => clearTimeout(timerRef.current), [])
 
   // Nothing meaningful to share without expenses.
   if (state.expenses.length === 0) return null
 
   function flash(message) {
+    clearTimeout(timerRef.current)
     setStatus(message)
-    if (message) setTimeout(() => setStatus(''), 3000)
+    if (message) timerRef.current = setTimeout(() => setStatus(''), 3000)
+  }
+
+  // Map a share/clipboard result to a status message. `label` is the success
+  // noun ("Link" or "Summary"); shared/cancelled show nothing.
+  function flashResult(result, label) {
+    if (result === 'copied') flash(`${label} copied`)
+    else if (result === 'failed') flash('Could not share')
+    else flash('')
   }
 
   async function onShare() {
@@ -28,16 +42,10 @@ export default function ShareButton({ state }) {
       if (url) {
         const title = (state.title || '').trim()
         const heading = title ? `EvenKar — ${title}` : 'EvenKar'
-        const result = await shareLink(url, heading)
-        if (result === 'copied') flash('Link copied')
-        else if (result === 'failed') flash('Could not share')
-        else flash('') // shared or cancelled — no message
+        flashResult(await shareLink(url, heading), 'Link')
       } else {
         // Link couldn't be composed (e.g. too large) — share the text summary.
-        const result = await shareSummary(buildSummaryText(state))
-        if (result === 'copied') flash('Summary copied')
-        else if (result === 'failed') flash('Could not share')
-        else flash('')
+        flashResult(await shareSummary(buildSummaryText(state)), 'Summary')
       }
     } finally {
       setBusy(false)

@@ -16,6 +16,14 @@ import { newId } from '../state/store.js'
 // codes, and messaging apps that truncate long links.
 export const MAX_URL_LENGTH = 2000
 
+// Decode-side bounds (defense-in-depth): a crafted, highly-repetitive blob can
+// stay under MAX_URL_LENGTH yet decompress to far more entries than encode could
+// ever produce, so cap both the compressed input and the decoded record counts
+// to keep a malicious link from near-freezing a low-end device.
+const MAX_PAYLOAD_LENGTH = MAX_URL_LENGTH
+const MAX_PEOPLE = 500
+const MAX_EXPENSES = 1000
+
 // Builds the compact wire payload from app state.
 export function encodeSplit(state) {
   const title = typeof state?.title === 'string' ? state.title.trim() : ''
@@ -56,19 +64,33 @@ export function encodeSplit(state) {
   return LZString.compressToEncodedURIComponent(JSON.stringify(payload))
 }
 
-// Decodes a wire string back into app state with FRESH ids. Every field is
-// coerced/validated defensively and built explicitly (never spread from the
-// untrusted payload) so a malicious blob can't pollute or smuggle in fields.
-// Returns null on ANY parse/decode error.
-export function decodeSplit(encoded) {
+// Decompress + parse a wire string into the raw payload object, or null on any
+// error. Side-effect free (no id minting) so callers that only need to inspect
+// the payload — e.g. composeShareUrl's round-trip check — don't pay for a full
+// decode.
+function parseWire(encoded) {
   try {
     if (typeof encoded !== 'string' || !encoded) return null
     const json = LZString.decompressFromEncodedURIComponent(encoded)
     if (!json) return null
     const payload = JSON.parse(json)
-    if (!payload || typeof payload !== 'object') return null
+    return payload && typeof payload === 'object' ? payload : null
+  } catch {
+    return null
+  }
+}
 
-    const rawPeople = Array.isArray(payload.p) ? payload.p : []
+// Decodes a wire string back into app state with FRESH ids. Every field is
+// coerced/validated defensively and built explicitly (never spread from the
+// untrusted payload) so a malicious blob can't pollute or smuggle in fields.
+// Returns null on ANY parse/decode error, or for an empty split (no people and
+// no expenses) so a blank crafted link can't render a wipe-the-data view.
+export function decodeSplit(encoded) {
+  try {
+    const payload = parseWire(encoded)
+    if (!payload) return null
+
+    const rawPeople = (Array.isArray(payload.p) ? payload.p : []).slice(0, MAX_PEOPLE)
     // Build people with fresh ids; remember each wire index -> new id so
     // expenses can be rebuilt.
     const idByIndex = []
@@ -83,7 +105,7 @@ export function decodeSplit(encoded) {
     })
 
     const validIndices = new Set(idByIndex.map((_, i) => i))
-    const rawExpenses = Array.isArray(payload.e) ? payload.e : []
+    const rawExpenses = (Array.isArray(payload.e) ? payload.e : []).slice(0, MAX_EXPENSES)
     const expenses = rawExpenses.map((exp) => {
       // Accept the amount only as a finite number on the wire (what encodeSplit
       // writes), so a crafted hex/exponent/array string can't smuggle a value.
@@ -111,6 +133,10 @@ export function decodeSplit(encoded) {
         createdAt: 0,
       }
     })
+
+    // An empty split is nothing to view — and would let a crafted #s= link
+    // render a blank SharedView whose "Save a copy" wipes the viewer's data.
+    if (people.length === 0 && expenses.length === 0) return null
 
     return {
       title: typeof payload.t === 'string' ? payload.t : '',
@@ -141,12 +167,15 @@ export function buildShareUrl(state, origin = window.location.origin) {
 export function composeShareUrl(state, origin = window.location.origin) {
   const url = buildShareUrl(state, origin)
   if (!url) return null
-  const decoded = decodeSplit(url.slice(url.indexOf('#s=') + 3))
-  if (!decoded) return null
+  // Verify the payload decompresses back to the same counts, WITHOUT a full
+  // decodeSplit (which would mint throwaway ids on every Share click).
+  const payload = parseWire(url.slice(url.indexOf('#s=') + 3))
+  if (!payload) return null
   const people = Array.isArray(state?.people) ? state.people : []
   const expenses = Array.isArray(state?.expenses) ? state.expenses : []
-  if (decoded.people.length !== people.length) return null
-  if (decoded.expenses.length !== expenses.length) return null
+  const pLen = Array.isArray(payload.p) ? payload.p.length : 0
+  const eLen = Array.isArray(payload.e) ? payload.e.length : 0
+  if (pLen !== people.length || eLen !== expenses.length) return null
   return url
 }
 
@@ -157,9 +186,8 @@ export function readSharedFromHash(hash = window.location.hash) {
   // can contain '+', which URLSearchParams would corrupt into spaces.
   const match = hash.replace(/^#/, '').match(/(?:^|&)s=([^&]*)/)
   const s = match ? match[1] : null
-  // Cap on the read side too: decode can never need to be bigger than encode
-  // could produce, so reject implausibly long input before allocating.
-  if (!s || s.length > MAX_URL_LENGTH) return null
+  // Reject implausibly long input before allocating (see MAX_PAYLOAD_LENGTH).
+  if (!s || s.length > MAX_PAYLOAD_LENGTH) return null
   return decodeSplit(s)
 }
 
