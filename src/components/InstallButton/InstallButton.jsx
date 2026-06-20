@@ -1,33 +1,6 @@
 import { useEffect, useState } from 'react'
+import { isStandalone, isIos, isDesktopSafari } from '../../lib/platform.js'
 import './InstallButton.css'
-
-// Is the app already running as an installed PWA? (standalone window)
-function isStandalone() {
-  return (
-    window.matchMedia?.('(display-mode: standalone)').matches ||
-    // iOS Safari exposes this non-standard flag instead of display-mode.
-    window.navigator.standalone === true
-  )
-}
-
-// iOS Safari never fires `beforeinstallprompt`, so we can't trigger a native
-// install — install is always the manual "Add to Home Screen" flow.
-function isIos() {
-  return /iphone|ipad|ipod/i.test(window.navigator.userAgent)
-}
-
-// Desktop Safari also has no install API; the user installs via File → Add to
-// Dock (Safari 17+). vendor === 'Apple Computer, Inc.' identifies WebKit/Safari,
-// and excluding Chrome/Android/iOS narrows it to Safari on macOS.
-function isDesktopSafari() {
-  const ua = window.navigator.userAgent
-  return (
-    window.navigator.vendor === 'Apple Computer, Inc.' &&
-    /safari/i.test(ua) &&
-    !/chrome|crios|fxios|edg|android/i.test(ua) &&
-    !isIos()
-  )
-}
 
 // "Install app" — only renders when installation is actually possible:
 //  • Chrome/Android: captures `beforeinstallprompt` and fires the native prompt.

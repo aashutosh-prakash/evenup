@@ -1,6 +1,7 @@
 import { useReducer, useEffect, useState } from 'react'
 import { reducer, loadState, saveState } from './state/store.js'
 import { MIN_PEOPLE } from './lib/expense.js'
+import { requestPersistentStorage } from './lib/platform.js'
 import PeoplePanel from './components/PeoplePanel/PeoplePanel.jsx'
 import ExpenseForm from './components/ExpenseForm/ExpenseForm.jsx'
 import ExpenseList from './components/ExpenseList/ExpenseList.jsx'
@@ -16,6 +17,12 @@ export default function App() {
   useEffect(() => {
     setSaveFailed(!saveState(state))
   }, [state])
+
+  // Ask the browser to keep our localStorage exempt from automatic eviction.
+  // Best-effort and one-shot; granted on Chromium/Gecko and installed web apps.
+  useEffect(() => {
+    requestPersistentStorage()
+  }, [])
 
   // Dim the expenses column during onboarding — before there are enough people
   // AND before any expense exists. Once an expense is entered it stays fully

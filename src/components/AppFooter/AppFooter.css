@@ -58,3 +58,16 @@
   color: #1c1e21;
   text-decoration: underline;
 }
+
+/* WebKit storage caveat — full-width line below the actions, quiet like the
+   trust chips. flex-basis:100% drops it onto its own row in the flex footer;
+   the readable ~44ch column is created with centering padding rather than
+   max-width, which would clamp the item and stop it taking its own line. */
+.storage-note {
+  flex-basis: 100%;
+  margin: 0.3rem 0 0;
+  padding-inline: max(0px, (100% - 44ch) / 2);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #80868b;
+}

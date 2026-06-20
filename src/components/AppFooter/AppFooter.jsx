@@ -1,4 +1,5 @@
 import InstallButton from '../InstallButton/InstallButton.jsx'
+import { isStorageEvictionRisk } from '../../lib/platform.js'
 import './AppFooter.css'
 
 const FEEDBACK_URL = 'https://github.com/aashutosh-prakash/evenup/issues/new'
@@ -56,6 +57,13 @@ export default function AppFooter() {
         </a>
         <InstallButton />
       </div>
+
+      {isStorageEvictionRisk() && (
+        <p className="storage-note">
+          On iPhone, iPad, and Safari, saved splits can be cleared after about a week
+          unused. Install the app to keep them — or use Share to save a copy.
+        </p>
+      )}
     </footer>
   )
 }
