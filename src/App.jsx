@@ -46,7 +46,9 @@ export default function App() {
     const hasData = state.people.length > 0 || state.expenses.length > 0
     if (
       hasData &&
-      !window.confirm('This replaces your current split. Save the shared copy anyway?')
+      !window.confirm(
+        'This replaces your current saved split. Save the shared copy anyway?',
+      )
     ) {
       return
     }
