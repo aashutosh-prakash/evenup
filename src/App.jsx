@@ -40,16 +40,6 @@ export default function App() {
                 role="img"
                 aria-label="EvenKar logo"
               >
-                <rect
-                  x="16"
-                  y="16"
-                  width="480"
-                  height="480"
-                  rx="104"
-                  fill="none"
-                  stroke="#1c1e21"
-                  strokeWidth="32"
-                />
                 <polyline
                   points="150,215 256,130 362,215"
                   fill="none"
