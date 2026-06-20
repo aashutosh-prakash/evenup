@@ -45,8 +45,9 @@ describe('SharedView', () => {
 
   it('shows expenses read-only (no Edit/Remove or Share)', () => {
     render(<SharedView split={split} onSave={() => {}} onExit={() => {}} />)
-    expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
+    // Exact names so they don't match the "Save a copy to edit" CTA.
+    expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /share this split/i }),
     ).not.toBeInTheDocument()
