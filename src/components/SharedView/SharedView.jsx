@@ -54,7 +54,7 @@ export default function SharedView({ split, onSave, onExit }) {
           })}
         </ul>
 
-        <Summary state={split} />
+        <Summary state={split} showShare={false} />
       </main>
 
       <AppFooter />

@@ -26,7 +26,9 @@ export default function ShareButton({ state }) {
     try {
       const url = composeShareUrl(state)
       if (url) {
-        const result = await shareLink(url)
+        const title = (state.title || '').trim()
+        const heading = title ? `EvenKar — ${title}` : 'EvenKar'
+        const result = await shareLink(url, heading)
         if (result === 'copied') flash('Link copied')
         else if (result === 'failed') flash('Could not share')
         else flash('') // shared or cancelled — no message

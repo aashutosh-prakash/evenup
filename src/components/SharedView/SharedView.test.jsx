@@ -31,6 +31,13 @@ describe('SharedView', () => {
     expect(screen.getByRole('button', { name: /exit/i })).toBeInTheDocument()
   })
 
+  it('does not offer Share in the read-only view', () => {
+    render(<SharedView split={split} onSave={() => {}} onExit={() => {}} />)
+    expect(
+      screen.queryByRole('button', { name: /share this split/i }),
+    ).not.toBeInTheDocument()
+  })
+
   it('calls onSave when Save a copy is clicked', () => {
     const onSave = vi.fn()
     render(<SharedView split={split} onSave={onSave} onExit={() => {}} />)

@@ -42,7 +42,7 @@ describe('ShareButton', () => {
     fireEvent.click(screen.getByRole('button', { name: /share this split/i }))
 
     expect(await screen.findByText('Link copied')).toBeInTheDocument()
-    expect(shareLink).toHaveBeenCalledWith('https://x/#s=abc')
+    expect(shareLink).toHaveBeenCalledWith('https://x/#s=abc', 'EvenKar')
     expect(shareSummary).not.toHaveBeenCalled()
   })
 

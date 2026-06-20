@@ -175,11 +175,12 @@ export function readSharedFromHash(hash = window.location.hash) {
 }
 
 // Tries the native share sheet first, then falls back to the clipboard.
-// Returns one of: 'shared' | 'copied' | 'cancelled' | 'failed'.
-export async function shareLink(url) {
+// `text` is an optional heading line shown above the link (e.g. "EvenKar —
+// Goa Trip"). Returns one of: 'shared' | 'copied' | 'cancelled' | 'failed'.
+export async function shareLink(url, text) {
   if (navigator.share) {
     try {
-      await navigator.share({ url })
+      await navigator.share(text ? { text, url } : { url })
       return 'shared'
     } catch (err) {
       if (err && err.name === 'AbortError') return 'cancelled'
@@ -187,7 +188,7 @@ export async function shareLink(url) {
     }
   }
   try {
-    await navigator.clipboard.writeText(url)
+    await navigator.clipboard.writeText(text ? `${text}\n${url}` : url)
     return 'copied'
   } catch {
     return 'failed'
