@@ -5,6 +5,12 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+.summary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  flex-wrap: wrap;
+}
 .paid-list {
   list-style: none;
   padding: 0;

@@ -216,6 +216,15 @@ export function reducer(state, action) {
     case 'SET_TITLE':
       return { ...state, title: action.title }
 
+    case 'REPLACE_STATE':
+      // Wholesale replace, used when saving a copy of a shared split. The
+      // payload is already sanitized (valid ids + references) by decodeSplit.
+      return {
+        title: typeof action.state?.title === 'string' ? action.state.title : '',
+        people: Array.isArray(action.state?.people) ? action.state.people : [],
+        expenses: Array.isArray(action.state?.expenses) ? action.state.expenses : [],
+      }
+
     case 'CLEAR_ALL':
       // saveState removes the storage key when state is empty, so no marker is left.
       return { people: [], expenses: [], title: '' }
