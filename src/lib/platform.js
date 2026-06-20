@@ -30,12 +30,23 @@ export function isDesktopSafari() {
   )
 }
 
-// True when this is a WebKit context (iOS any browser, or macOS Safari) that is
-// NOT installed — i.e. where saved data can be evicted after ~7 days unused.
-// Installing the web app gets WebKit to grant persistent storage, so installed
-// users are not at risk and everywhere else (Blink/Gecko) is durable already.
-export function isStorageEvictionRisk() {
-  return !isStandalone() && (isIos() || isDesktopSafari())
+// True when this origin's saved data can actually be evicted. We check the
+// real granted state with navigator.storage.persisted() rather than assuming
+// from the platform: persisted storage is exempt from eviction, so if it's
+// granted we never warn. We still scope the warning to WebKit (iOS any browser,
+// or macOS Safari), because that's where best-effort storage is aggressively
+// capped (~7 days unused); on Blink/Gecko best-effort eviction only happens
+// under real disk pressure, so warning every Chrome user would be noise.
+export async function isStorageEvictionRisk() {
+  if (isStandalone()) return false
+  if (!(isIos() || isDesktopSafari())) return false
+  try {
+    // Persistence was actually granted (e.g. WebKit honored persist()) — safe.
+    if (await navigator.storage?.persisted?.()) return false
+  } catch {
+    // Storage API unavailable — fall through and treat as at-risk.
+  }
+  return true
 }
 
 // Ask the browser to exempt our storage from automatic eviction. Granted

@@ -18,26 +18,45 @@ afterEach(() => {
   delete navigator.storage
 })
 
+const IOS_UA =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15'
+
+function setPersisted(value) {
+  Object.defineProperty(navigator, 'storage', {
+    value: { persisted: vi.fn().mockResolvedValue(value) },
+    configurable: true,
+  })
+}
+
 describe('isStorageEvictionRisk', () => {
-  it('is true on a non-installed iOS browser (WebKit)', () => {
-    setUserAgent(
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
-    )
-    expect(isStorageEvictionRisk()).toBe(true)
+  it('is true on a non-installed iOS browser whose storage is not persisted', async () => {
+    setUserAgent(IOS_UA)
+    setPersisted(false)
+    expect(await isStorageEvictionRisk()).toBe(true)
   })
 
-  it('is false once installed (standalone)', () => {
-    setUserAgent(
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
-    )
+  it('is true on iOS when the Storage API is unavailable', async () => {
+    setUserAgent(IOS_UA)
+    expect(await isStorageEvictionRisk()).toBe(true)
+  })
+
+  it('is false on iOS once storage is actually persisted', async () => {
+    setUserAgent(IOS_UA)
+    setPersisted(true)
+    expect(await isStorageEvictionRisk()).toBe(false)
+  })
+
+  it('is false once installed (standalone)', async () => {
+    setUserAgent(IOS_UA)
     window.matchMedia = vi.fn().mockReturnValue({ matches: true })
-    expect(isStorageEvictionRisk()).toBe(false)
+    expect(await isStorageEvictionRisk()).toBe(false)
   })
 
-  it('is false on a non-WebKit browser', () => {
+  it('is false on a non-WebKit browser regardless of persisted state', async () => {
     setUserAgent('Mozilla/5.0 (Windows NT 10.0) Chrome/120.0 Safari/537.36')
     setVendor('Google Inc.')
-    expect(isStorageEvictionRisk()).toBe(false)
+    setPersisted(false)
+    expect(await isStorageEvictionRisk()).toBe(false)
   })
 })
 

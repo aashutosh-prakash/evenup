@@ -18,12 +18,15 @@ describe('AppFooter', () => {
     expect(screen.getByText(/works offline/i)).toBeInTheDocument()
   })
 
-  it('shows the storage caveat on iOS (a WebKit context)', () => {
+  it('shows the storage caveat on iOS when storage is not persisted', async () => {
     setUserAgent(
       'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
     )
     render(<AppFooter />)
-    expect(screen.getByText(/can be cleared after about a week/i)).toBeInTheDocument()
+    // Resolved asynchronously from navigator.storage.persisted().
+    expect(
+      await screen.findByText(/can be cleared after about a week/i),
+    ).toBeInTheDocument()
   })
 
   it('omits the storage caveat in non-WebKit browsers', () => {
