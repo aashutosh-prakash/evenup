@@ -47,6 +47,14 @@ export default function SharedView({ split, onSave, onExit }) {
           <p className="receipt-store">EvenKar</p>
           {title && <p className="receipt-title">{title}</p>}
           <p className="receipt-sub">· shared split ·</p>
+          {split.sharedAt && (
+            <p className="receipt-date">
+              {new Date(split.sharedAt).toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              })}
+            </p>
+          )}
 
           <div className="receipt-rule" />
 

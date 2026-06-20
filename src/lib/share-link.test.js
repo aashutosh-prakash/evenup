@@ -101,6 +101,23 @@ describe('encodeSplit / decodeSplit round-trip', () => {
   })
 })
 
+describe('shared timestamp', () => {
+  it('round-trips a sharedAt passed at encode time', () => {
+    const decoded = decodeSplit(encodeSplit(sample, 1700000000000))
+    expect(decoded.sharedAt).toBe(1700000000000)
+  })
+
+  it('is null when no timestamp was embedded', () => {
+    expect(decodeSplit(encodeSplit(sample)).sharedAt).toBeNull()
+  })
+
+  it('composeShareUrl embeds the current time by default', () => {
+    const url = composeShareUrl(sample, 'https://e.com')
+    const decoded = readSharedFromHash(url.slice(url.indexOf('#')))
+    expect(typeof decoded.sharedAt).toBe('number')
+  })
+})
+
 describe('decodeSplit defensive handling', () => {
   it('returns null on garbage input', () => {
     expect(decodeSplit('!!!')).toBeNull()

@@ -94,7 +94,8 @@
   text-align: center;
   font-weight: 600;
 }
-.receipt-sub {
+.receipt-sub,
+.receipt-date {
   margin: 0.1rem 0 0;
   text-align: center;
   color: #888;

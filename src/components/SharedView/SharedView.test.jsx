@@ -32,6 +32,17 @@ describe('SharedView', () => {
     expect(screen.getByRole('button', { name: /exit/i })).toBeInTheDocument()
   })
 
+  it('shows the shared date when sharedAt is present', () => {
+    render(
+      <SharedView
+        split={{ ...split, sharedAt: Date.parse('2026-06-20T16:00:00Z') }}
+        onSave={() => {}}
+        onExit={() => {}}
+      />,
+    )
+    expect(screen.getByText(/2026/)).toBeInTheDocument()
+  })
+
   it('shows expenses read-only (no Edit/Remove or Share)', () => {
     render(<SharedView split={split} onSave={() => {}} onExit={() => {}} />)
     expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument()
