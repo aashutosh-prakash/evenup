@@ -272,13 +272,14 @@ describe('shareLink', () => {
     expect(writeText).toHaveBeenCalledWith('EvenKar — Goa Trip\n\nhttps://e.com/#s=abc')
   })
 
-  it('shares the same composed message via the native sheet', async () => {
+  it('shares the link in the url field (heading as text) so it stays a real link', async () => {
     const share = vi.fn(() => Promise.resolve())
     Object.defineProperty(navigator, 'share', { value: share, configurable: true })
     const result = await shareLink('https://e.com/#s=abc', 'EvenKar — Goa Trip')
     expect(result).toBe('shared')
     expect(share).toHaveBeenCalledWith({
-      text: 'EvenKar — Goa Trip\n\nhttps://e.com/#s=abc',
+      text: 'EvenKar — Goa Trip',
+      url: 'https://e.com/#s=abc',
     })
   })
 })

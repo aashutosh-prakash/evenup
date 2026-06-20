@@ -205,10 +205,12 @@ export function readSharedFromHash(hash = window.location.hash) {
 // then a blank line, then the link. Returns one of:
 // 'shared' | 'copied' | 'cancelled' | 'failed'.
 export async function shareLink(url, text) {
-  const message = text ? `${text}\n\n${url}` : url
   if (navigator.share) {
     try {
-      await navigator.share({ text: message })
+      // Pass the link in the dedicated `url` field so share targets treat it as
+      // a real, tappable link — NOT glued into the text (which corrupts it into
+      // one broken address). `text` carries the heading.
+      await navigator.share(text ? { text, url } : { url })
       return 'shared'
     } catch (err) {
       if (err && err.name === 'AbortError') return 'cancelled'
@@ -216,7 +218,8 @@ export async function shareLink(url, text) {
     }
   }
   try {
-    await navigator.clipboard.writeText(message)
+    // Clipboard fallback keeps the heading on top, a blank line, then the link.
+    await navigator.clipboard.writeText(text ? `${text}\n\n${url}` : url)
     return 'copied'
   } catch {
     return 'failed'
