@@ -1,9 +1,11 @@
+import { afterEach, vi } from 'vitest'
 import {
   encodeSplit,
   decodeSplit,
   buildShareUrl,
   composeShareUrl,
   readSharedFromHash,
+  shareLink,
   MAX_URL_LENGTH,
 } from './share-link.js'
 
@@ -207,6 +209,34 @@ describe('composeShareUrl', () => {
     expect(
       composeShareUrl({ title: 'Huge', people, expenses: [] }, 'https://e.com'),
     ).toBeNull()
+  })
+})
+
+describe('shareLink', () => {
+  afterEach(() => {
+    delete navigator.share
+    delete navigator.clipboard
+  })
+
+  it('copies the heading, a blank line, then the link', async () => {
+    const writeText = vi.fn(() => Promise.resolve())
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    })
+    const result = await shareLink('https://e.com/#s=abc', 'EvenKar — Goa Trip')
+    expect(result).toBe('copied')
+    expect(writeText).toHaveBeenCalledWith('EvenKar — Goa Trip\n\nhttps://e.com/#s=abc')
+  })
+
+  it('shares the same composed message via the native sheet', async () => {
+    const share = vi.fn(() => Promise.resolve())
+    Object.defineProperty(navigator, 'share', { value: share, configurable: true })
+    const result = await shareLink('https://e.com/#s=abc', 'EvenKar — Goa Trip')
+    expect(result).toBe('shared')
+    expect(share).toHaveBeenCalledWith({
+      text: 'EvenKar — Goa Trip\n\nhttps://e.com/#s=abc',
+    })
   })
 })
 
