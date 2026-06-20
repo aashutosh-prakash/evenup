@@ -9,30 +9,12 @@
 //     e: [{ d: description||undefined, a: amount, p: payerIndex (-1 if none),
 //           s: [participantIndex, ...] }] }
 
+import LZString from 'lz-string'
 import { newId } from '../state/store.js'
 
 // Keep shared URLs under this length so they survive the address bar, QR
 // codes, and messaging apps that truncate long links.
 export const MAX_URL_LENGTH = 2000
-
-// UTF-8-safe base64url: encode to bytes first so Unicode names/emoji survive
-// btoa (which only handles Latin-1).
-function toBase64Url(str) {
-  const bytes = new TextEncoder().encode(str)
-  let binary = ''
-  for (const b of bytes) binary += String.fromCharCode(b)
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
-function fromBase64Url(encoded) {
-  let b64 = encoded.replace(/-/g, '+').replace(/_/g, '/')
-  // Restore the stripped '=' padding so atob accepts the string.
-  while (b64.length % 4 !== 0) b64 += '='
-  const binary = atob(b64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i)
-  return new TextDecoder().decode(bytes)
-}
 
 // Builds the compact wire payload from app state.
 export function encodeSplit(state) {
@@ -68,7 +50,10 @@ export function encodeSplit(state) {
   }
   if (title) payload.t = title
 
-  return toBase64Url(JSON.stringify(payload))
+  // Compress to a URL-safe string. The wire format is very repetitive, so this
+  // shrinks links dramatically (often 50-90%), letting much larger splits share
+  // as a link before falling back to the text summary.
+  return LZString.compressToEncodedURIComponent(JSON.stringify(payload))
 }
 
 // Decodes a wire string back into app state with FRESH ids. Every field is
@@ -78,7 +63,9 @@ export function encodeSplit(state) {
 export function decodeSplit(encoded) {
   try {
     if (typeof encoded !== 'string' || !encoded) return null
-    const payload = JSON.parse(fromBase64Url(encoded))
+    const json = LZString.decompressFromEncodedURIComponent(encoded)
+    if (!json) return null
+    const payload = JSON.parse(json)
     if (!payload || typeof payload !== 'object') return null
 
     const rawPeople = Array.isArray(payload.p) ? payload.p : []
@@ -166,8 +153,10 @@ export function composeShareUrl(state, origin = window.location.origin) {
 // Reads the 's' param out of a location hash and decodes it. Returns null when
 // the param is absent or fails to decode.
 export function readSharedFromHash(hash = window.location.hash) {
-  const params = new URLSearchParams(hash.replace(/^#/, ''))
-  const s = params.get('s')
+  // Extract the raw `s=` value WITHOUT URL-decoding — lz-string's encoded output
+  // can contain '+', which URLSearchParams would corrupt into spaces.
+  const match = hash.replace(/^#/, '').match(/(?:^|&)s=([^&]*)/)
+  const s = match ? match[1] : null
   // Cap on the read side too: decode can never need to be bigger than encode
   // could produce, so reject implausibly long input before allocating.
   if (!s || s.length > MAX_URL_LENGTH) return null
