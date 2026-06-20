@@ -16,7 +16,9 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.85rem 1rem;
-  margin-bottom: 1.5rem;
+  /* Match the receipt's width and centering so the two cards line up. */
+  max-width: 360px;
+  margin: 0 auto 1.5rem;
 }
 .shared-banner-text {
   font-weight: 600;

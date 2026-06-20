@@ -34,7 +34,7 @@ export default function SharedView({ split, onSave, onExit }) {
         <span className="shared-banner-text">You&apos;re viewing a shared split.</span>
         <div className="shared-banner-actions">
           <button type="button" className="shared-save" onClick={onSave}>
-            Save a copy
+            Save a copy to edit
           </button>
           <button type="button" className="shared-exit" onClick={onExit}>
             Exit
