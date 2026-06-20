@@ -34,7 +34,9 @@ describe('Avatar', () => {
         <Avatar person={{ id: 'p2', name: 'Bob', colorIndex: 1 }} />
       </>,
     )
-    const fills = [...container.querySelectorAll('circle')].map((c) => c.getAttribute('fill'))
+    const fills = [...container.querySelectorAll('circle')].map((c) =>
+      c.getAttribute('fill'),
+    )
     expect(fills[0]).not.toBe(fills[1])
   })
 })
