@@ -1,3 +1,32 @@
+/* Quick-pick description chips */
+.desc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.chip {
+  padding: 0.2rem 0.7rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: #444;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: #1c1e21;
+  color: #1c1e21;
+}
+/* Includes :hover so the active chip keeps white text while hovered — the
+   plain .chip:hover above is more specific than .chip-active and would
+   otherwise paint the label dark-on-dark. */
+.chip-active,
+.chip-active:hover {
+  background: #1c1e21;
+  color: #fff;
+  border-color: #1c1e21;
+}
+
 /* Stacked form field (Paid by) */
 .field {
   display: flex;

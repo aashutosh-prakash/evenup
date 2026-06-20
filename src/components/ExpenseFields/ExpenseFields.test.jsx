@@ -25,6 +25,21 @@ describe('ExpenseFields', () => {
     expect(onChange).toHaveBeenCalledWith('description', 'Lunch')
   })
 
+  it('fills the description when a quick-pick chip is clicked', () => {
+    const onChange = vi.fn()
+    render(
+      <ExpenseFields
+        values={emptyValues}
+        errors={{}}
+        people={people}
+        onChange={onChange}
+        onToggleParticipant={() => {}}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Food' }))
+    expect(onChange).toHaveBeenCalledWith('description', 'Food')
+  })
+
   it('toggles a participant via onToggleParticipant', () => {
     const onToggle = vi.fn()
     render(

@@ -1,5 +1,8 @@
 import './ExpenseFields.css'
 
+// Quick-pick descriptions for the most common shared expenses.
+const DESCRIPTION_CHIPS = ['Food', 'Drinks', 'Parking', 'Toll']
+
 // Module-level (not redefined per render) so its identity is stable and the
 // error <span> updates in place instead of remounting on every keystroke.
 function FieldError({ id, message }) {
@@ -44,6 +47,19 @@ export default function ExpenseFields({
         onChange={(e) => onChange('description', e.target.value)}
       />
       <FieldError id={errId('description')} message={errors.description} />
+      <div className="desc-chips" role="group" aria-label="Quick descriptions">
+        {DESCRIPTION_CHIPS.map((label) => (
+          <button
+            key={label}
+            type="button"
+            className={`chip${values.description === label ? ' chip-active' : ''}`}
+            aria-pressed={values.description === label}
+            onClick={() => onChange('description', label)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <input
         ref={fieldRefs.amount}
         type="number"
