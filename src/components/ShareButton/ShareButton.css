@@ -24,6 +24,10 @@
   flex: none;
 }
 .share-status {
+  /* Reserve the line height even when empty so the message appearing/clearing
+     never nudges the layout. */
+  min-height: 1rem;
   font-size: 0.8rem;
+  line-height: 1;
   color: #137333;
 }

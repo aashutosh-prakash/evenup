@@ -15,7 +15,7 @@ export default function ShareButton({ state }) {
 
   function flash(message) {
     setStatus(message)
-    if (message) setTimeout(() => setStatus(''), 2500)
+    if (message) setTimeout(() => setStatus(''), 3000)
   }
 
   async function onShare() {
@@ -62,11 +62,11 @@ export default function ShareButton({ state }) {
         </svg>
         Share
       </button>
-      {status && (
-        <span className="share-status" role="status">
-          {status}
-        </span>
-      )}
+      {/* Always rendered (reserves its line) so showing a message never shifts
+          the layout. role=status announces it to screen readers when filled. */}
+      <span className="share-status" role="status">
+        {status}
+      </span>
     </div>
   )
 }
