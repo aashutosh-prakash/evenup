@@ -43,17 +43,43 @@ export function nextColorIndex(people) {
   return i
 }
 
-// Assigns a distinct colorIndex to any person missing one (e.g. data written
-// by an older version), preserving indices that are already set.
+// Guarantees a DISTINCT colorIndex per person: keeps the first occurrence of
+// each valid index and reassigns any missing OR duplicate index to the smallest
+// free one. (Imported/shared data can carry duplicate colors; persisted older
+// data can be missing them.)
 function backfillColors(people) {
-  const used = new Set(people.map((p) => p.colorIndex).filter((i) => Number.isInteger(i)))
+  const used = new Set()
   let next = 0
   return people.map((p) => {
-    if (Number.isInteger(p.colorIndex)) return p
-    while (used.has(next)) next += 1
-    used.add(next)
-    return { ...p, colorIndex: next }
+    let c = p.colorIndex
+    if (!Number.isInteger(c) || used.has(c)) {
+      while (used.has(next)) next += 1
+      c = next
+    }
+    used.add(c)
+    return c === p.colorIndex ? p : { ...p, colorIndex: c }
   })
+}
+
+// The single validation path for untrusted { people, expenses, title } —
+// distinct-colored, well-formed people and expenses whose references all
+// resolve. Used by both loadState (persisted data) and the REPLACE_STATE
+// reducer (a shared split being saved), so neither can bypass the store rules.
+function sanitizeState(parsed) {
+  const people = backfillColors(
+    (Array.isArray(parsed?.people) ? parsed.people : [])
+      .map(sanitizePerson)
+      .filter(Boolean),
+  )
+  const validIds = new Set(people.map((p) => p.id))
+  const expenses = (Array.isArray(parsed?.expenses) ? parsed.expenses : [])
+    .map((e) => sanitizeExpense(e, validIds))
+    .filter(Boolean)
+  return {
+    people,
+    expenses,
+    title: typeof parsed?.title === 'string' ? parsed.title : '',
+  }
 }
 
 // Coerce a single persisted person into a well-formed record, or null if it
@@ -98,22 +124,7 @@ export function loadState() {
     if (!raw) return initialState
     const parsed = JSON.parse(raw)
     if (!parsed || typeof parsed !== 'object') return initialState
-
-    const people = backfillColors(
-      (Array.isArray(parsed.people) ? parsed.people : [])
-        .map(sanitizePerson)
-        .filter(Boolean),
-    )
-    const validIds = new Set(people.map((p) => p.id))
-    const expenses = (Array.isArray(parsed.expenses) ? parsed.expenses : [])
-      .map((e) => sanitizeExpense(e, validIds))
-      .filter(Boolean)
-
-    return {
-      people,
-      expenses,
-      title: typeof parsed.title === 'string' ? parsed.title : '',
-    }
+    return sanitizeState(parsed)
   } catch {
     return initialState
   }
@@ -215,6 +226,12 @@ export function reducer(state, action) {
 
     case 'SET_TITLE':
       return { ...state, title: action.title }
+
+    case 'REPLACE_STATE':
+      // Wholesale replace, used when saving a copy of a shared split. Run it
+      // through the store's own sanitizer (not just decodeSplit's) so the
+      // persisted data always obeys the store invariants.
+      return sanitizeState(action.state)
 
     case 'CLEAR_ALL':
       // saveState removes the storage key when state is empty, so no marker is left.

@@ -113,6 +113,30 @@ describe('UPDATE_EXPENSE', () => {
   })
 })
 
+describe('REPLACE_STATE', () => {
+  it('sanitizes the incoming split: distinct colors and no dangling refs', () => {
+    const next = reducer(
+      { people: [], expenses: [], title: '' },
+      {
+        type: 'REPLACE_STATE',
+        state: {
+          title: 'Imported',
+          people: [
+            { id: 'x', name: 'A', colorIndex: 0 },
+            { id: 'y', name: 'B', colorIndex: 0 }, // duplicate color
+          ],
+          expenses: [
+            { id: 'ex', amount: 10, paidById: 'x', participantIds: ['x', 'ghost'] },
+          ],
+        },
+      },
+    )
+    expect(next.title).toBe('Imported')
+    expect(next.people.map((p) => p.colorIndex)).toEqual([0, 1]) // duplicate reassigned
+    expect(next.expenses[0].participantIds).toEqual(['x']) // 'ghost' dropped
+  })
+})
+
 describe('loadState sanitization', () => {
   beforeEach(() => localStorage.clear())
 

@@ -20,7 +20,7 @@ function netState(n) {
 }
 const NET_LABEL = { pos: 'is owed', neg: 'owes', zero: 'settled' }
 
-export default function Summary({ state }) {
+export default function Summary({ state, showShare = true }) {
   const personOf = (id) => findPerson(state.people, id)
   const { paid, total, txns, balances } = useMemo(() => {
     const bal = computeBalances(state.people, state.expenses)
@@ -38,7 +38,7 @@ export default function Summary({ state }) {
     <section className={`summary panel${!hasExpenses ? ' is-upcoming' : ''}`}>
       <div className="summary-head">
         <h2>Summary</h2>
-        <ShareButton state={state} />
+        {showShare && <ShareButton state={state} />}
       </div>
 
       {!hasExpenses ? (

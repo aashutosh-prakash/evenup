@@ -1,7 +1,8 @@
 .share {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
 }
 .share-btn {
   display: inline-flex;
@@ -23,6 +24,10 @@
   flex: none;
 }
 .share-status {
+  /* Reserve the line height even when empty so the message appearing/clearing
+     never nudges the layout. */
+  min-height: 1rem;
   font-size: 0.8rem;
+  line-height: 1;
   color: #137333;
 }

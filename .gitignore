@@ -6,5 +6,6 @@ coverage
 
 # Claude Code local/runtime files
 .claude/scheduled_tasks.lock
+.claude/settings.json
 .claude/settings.local.json
 .playwright-mcp/

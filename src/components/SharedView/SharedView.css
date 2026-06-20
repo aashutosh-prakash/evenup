@@ -1,0 +1,64 @@
+/* Read-only shared-link view. Reuses the global .app shell, header, and .panel
+   look; only the banner and read-only expense rows need bespoke styles. */
+
+/* A single read-only column doesn't need the full editor width — keep it a
+   comfortable reading measure so the summary isn't over-stretched on desktop. */
+.app.shared-app {
+  max-width: 640px;
+}
+
+/* The split title sits beside the wordmark, mirroring the editor's title input
+   (but read-only). Match the input's padding + border box so it aligns
+   identically in the flex-end brand row. */
+.shared-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid transparent;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.shared-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.5rem;
+}
+.shared-banner-text {
+  font-weight: 600;
+}
+.shared-banner-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.shared-banner button {
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font: inherit;
+  cursor: pointer;
+}
+.shared-save {
+  background: #1c1e21;
+  color: #fff;
+  border: 1px solid #1c1e21;
+}
+.shared-exit {
+  background: #fff;
+  color: #1c1e21;
+  border: 1px solid var(--border);
+}
+
+.shared-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1 0 auto;
+}
