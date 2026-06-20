@@ -147,6 +147,22 @@ export function buildShareUrl(state, origin = window.location.origin) {
   return url
 }
 
+// Builds a share URL and verifies it actually round-trips (decodes back to the
+// same number of people/expenses) before we hand it out. Returns the URL when
+// the split is "properly composed", or null so the caller can fall back to the
+// plain-text summary (split empty, too large, or — defensively — corrupted).
+export function composeShareUrl(state, origin = window.location.origin) {
+  const url = buildShareUrl(state, origin)
+  if (!url) return null
+  const decoded = decodeSplit(url.slice(url.indexOf('#s=') + 3))
+  if (!decoded) return null
+  const people = Array.isArray(state?.people) ? state.people : []
+  const expenses = Array.isArray(state?.expenses) ? state.expenses : []
+  if (decoded.people.length !== people.length) return null
+  if (decoded.expenses.length !== expenses.length) return null
+  return url
+}
+
 // Reads the 's' param out of a location hash and decodes it. Returns null when
 // the param is absent or fails to decode.
 export function readSharedFromHash(hash = window.location.hash) {

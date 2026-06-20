@@ -1,6 +1,18 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import ShareButton from './ShareButton.jsx'
 
+vi.mock('../../lib/share-link.js', () => ({
+  composeShareUrl: vi.fn(),
+  shareLink: vi.fn(() => Promise.resolve('copied')),
+}))
+vi.mock('../../lib/share.js', () => ({
+  buildSummaryText: vi.fn(() => 'summary text'),
+  shareSummary: vi.fn(() => Promise.resolve('copied')),
+}))
+
+import { composeShareUrl, shareLink } from '../../lib/share-link.js'
+import { shareSummary } from '../../lib/share.js'
+
 const state = {
   title: '',
   people: [
@@ -24,17 +36,22 @@ describe('ShareButton', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('copies the summary to the clipboard when share is unavailable', async () => {
-    const writeText = vi.fn(() => Promise.resolve())
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText },
-      configurable: true,
-    })
-
+  it('shares the link when it composes, showing "Link copied"', async () => {
+    composeShareUrl.mockReturnValue('https://x/#s=abc')
     render(<ShareButton state={state} />)
-    fireEvent.click(screen.getByRole('button', { name: /share summary/i }))
+    fireEvent.click(screen.getByRole('button', { name: /share this split/i }))
 
-    expect(await screen.findByText('Copied to clipboard')).toBeInTheDocument()
-    expect(writeText).toHaveBeenCalled()
+    expect(await screen.findByText('Link copied')).toBeInTheDocument()
+    expect(shareLink).toHaveBeenCalledWith('https://x/#s=abc')
+    expect(shareSummary).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the text summary when the link cannot be composed', async () => {
+    composeShareUrl.mockReturnValue(null)
+    render(<ShareButton state={state} />)
+    fireEvent.click(screen.getByRole('button', { name: /share this split/i }))
+
+    expect(await screen.findByText('Summary copied')).toBeInTheDocument()
+    expect(shareSummary).toHaveBeenCalledWith('summary text')
   })
 })

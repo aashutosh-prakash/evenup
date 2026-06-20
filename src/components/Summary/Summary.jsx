@@ -10,7 +10,6 @@ import {
 import { personOf as findPerson } from '../../lib/expense.js'
 import Avatar from '../Avatar/Avatar.jsx'
 import ShareButton from '../ShareButton/ShareButton.jsx'
-import ShareLinkButton from '../ShareLinkButton/ShareLinkButton.jsx'
 import './Summary.css'
 
 // Classifies a net balance once into a bucket; class and label derive from it.
@@ -39,10 +38,7 @@ export default function Summary({ state }) {
     <section className={`summary panel${!hasExpenses ? ' is-upcoming' : ''}`}>
       <div className="summary-head">
         <h2>Summary</h2>
-        <span className="summary-actions">
-          <ShareButton state={state} />
-          <ShareLinkButton state={state} />
-        </span>
+        <ShareButton state={state} />
       </div>
 
       {!hasExpenses ? (

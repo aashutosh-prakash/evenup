@@ -2,6 +2,7 @@ import {
   encodeSplit,
   decodeSplit,
   buildShareUrl,
+  composeShareUrl,
   readSharedFromHash,
   MAX_URL_LENGTH,
 } from './share-link.js'
@@ -181,6 +182,31 @@ describe('buildShareUrl', () => {
     expect(`https://example.com/#s=${encodeSplit(big)}`.length).toBeGreaterThan(
       MAX_URL_LENGTH,
     )
+  })
+})
+
+describe('composeShareUrl', () => {
+  it('returns a verified URL when the split round-trips', () => {
+    const url = composeShareUrl(sample, 'https://example.com')
+    expect(url).not.toBeNull()
+    expect(url.startsWith('https://example.com/#s=')).toBe(true)
+  })
+
+  it('returns null for an empty split (caller falls back to text)', () => {
+    expect(
+      composeShareUrl({ title: '', people: [], expenses: [] }, 'https://e.com'),
+    ).toBeNull()
+  })
+
+  it('returns null when too large to encode', () => {
+    const people = Array.from({ length: 400 }, (_, i) => ({
+      id: `p${i}`,
+      name: `Person-with-a-very-long-name-number-${i}`,
+      colorIndex: i,
+    }))
+    expect(
+      composeShareUrl({ title: 'Huge', people, expenses: [] }, 'https://e.com'),
+    ).toBeNull()
   })
 })
 

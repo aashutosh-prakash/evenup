@@ -1,20 +1,44 @@
 import { useState } from 'react'
 import { buildSummaryText, shareSummary } from '../../lib/share.js'
+import { composeShareUrl, shareLink } from '../../lib/share-link.js'
 import './ShareButton.css'
 
+// Single "Share" action: prefer a link to the interactive read-only view, and
+// fall back to the plain-text summary when a link can't be properly composed
+// (split too large, or — defensively — fails its round-trip check).
 export default function ShareButton({ state }) {
   const [status, setStatus] = useState('')
+  const [busy, setBusy] = useState(false)
 
   // Nothing meaningful to share without expenses.
   if (state.expenses.length === 0) return null
 
+  function flash(message) {
+    setStatus(message)
+    if (message) setTimeout(() => setStatus(''), 2500)
+  }
+
   async function onShare() {
-    const result = await shareSummary(buildSummaryText(state))
-    if (result === 'copied') setStatus('Copied to clipboard')
-    else if (result === 'failed') setStatus('Could not share')
-    else setStatus('') // shared or cancelled — no message needed
-    if (result === 'copied' || result === 'failed') {
-      setTimeout(() => setStatus(''), 2500)
+    // Guard against a second click while a share sheet is already open —
+    // otherwise the in-progress share rejects and we'd fall back confusingly.
+    if (busy) return
+    setBusy(true)
+    try {
+      const url = composeShareUrl(state)
+      if (url) {
+        const result = await shareLink(url)
+        if (result === 'copied') flash('Link copied')
+        else if (result === 'failed') flash('Could not share')
+        else flash('') // shared or cancelled — no message
+      } else {
+        // Link couldn't be composed (e.g. too large) — share the text summary.
+        const result = await shareSummary(buildSummaryText(state))
+        if (result === 'copied') flash('Summary copied')
+        else if (result === 'failed') flash('Could not share')
+        else flash('')
+      }
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -23,7 +47,7 @@ export default function ShareButton({ state }) {
       <button
         type="button"
         className="share-btn"
-        aria-label="Share summary"
+        aria-label="Share this split"
         onClick={onShare}
       >
         <svg
