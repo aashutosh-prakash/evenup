@@ -57,7 +57,16 @@
   font-size: 0.8rem;
   color: #888;
 }
+/* Hover color signals the action: neutral for rename, green for save, red
+   only for the destructive remove/cancel (✕) buttons. */
 .icon-btn:hover {
+  color: #1c1e21;
+}
+.icon-btn.save:hover {
+  color: var(--pos);
+  border-color: var(--pos);
+}
+.icon-btn.danger:hover {
   color: var(--neg);
   border-color: var(--neg);
 }

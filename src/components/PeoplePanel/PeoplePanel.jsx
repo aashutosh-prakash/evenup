@@ -100,12 +100,12 @@ export default function PeoplePanel({ state, dispatch }) {
                   }}
                 />
                 <span className="row-actions">
-                  <button type="submit" className="icon-btn" aria-label="Save name">
+                  <button type="submit" className="icon-btn save" aria-label="Save name">
                     ✓
                   </button>
                   <button
                     type="button"
-                    className="icon-btn"
+                    className="icon-btn danger"
                     aria-label="Cancel edit"
                     onClick={cancelEdit}
                   >
@@ -131,7 +131,7 @@ export default function PeoplePanel({ state, dispatch }) {
                 </button>
                 <button
                   type="button"
-                  className="icon-btn"
+                  className="icon-btn danger"
                   aria-label={`Remove ${p.name}`}
                   onClick={() => removePerson(p)}
                 >
