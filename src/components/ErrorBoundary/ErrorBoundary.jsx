@@ -29,7 +29,7 @@ export default class ErrorBoundary extends Component {
         <div className="error-boundary" role="alert">
           <h1>Something went wrong</h1>
           <p>
-            EvenUp hit an unexpected error. Your saved data may be corrupted. You can
+            EvenKar hit an unexpected error. Your saved data may be corrupted. You can
             reset it to start fresh — this clears all people and expenses stored in this
             browser.
           </p>

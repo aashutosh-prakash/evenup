@@ -1,4 +1,4 @@
-# EvenUp
+# EvenKar
 
 Split shared expenses equally and see who should pay whom to settle up.
 Runs entirely in your browser — no login, no server, no tracking. Your data

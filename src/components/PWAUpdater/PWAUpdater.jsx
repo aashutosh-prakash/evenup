@@ -14,7 +14,7 @@ export default function PWAUpdater() {
 
   return (
     <div className="pwa-toast" role="alert">
-      <span className="pwa-toast-msg">A new version of EvenUp is available.</span>
+      <span className="pwa-toast-msg">A new version of EvenKar is available.</span>
       <div className="pwa-toast-actions">
         <button
           type="button"

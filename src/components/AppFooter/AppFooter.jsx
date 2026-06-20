@@ -8,7 +8,7 @@ const FEEDBACK_URL = 'https://github.com/aashutosh-prakash/evenup/issues/new'
 export default function AppFooter() {
   return (
     <footer className="app-footer">
-      <ul className="trust-chips" aria-label="About EvenUp">
+      <ul className="trust-chips" aria-label="About EvenKar">
         <li>
           <svg
             viewBox="0 0 24 24"

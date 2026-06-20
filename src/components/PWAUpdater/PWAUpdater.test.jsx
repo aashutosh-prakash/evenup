@@ -32,7 +32,7 @@ describe('PWAUpdater', () => {
   it('shows an update toast and reloads to the new version on Reload', () => {
     h.needRefresh = true
     render(<PWAUpdater />)
-    expect(screen.getByText(/new version of evenup is available/i)).toBeInTheDocument()
+    expect(screen.getByText(/new version of evenkar is available/i)).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /reload/i }))
     expect(h.updateServiceWorker).toHaveBeenCalledWith(true)
