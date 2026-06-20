@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import InstallButton from '../InstallButton/InstallButton.jsx'
+import { isStorageEvictionRisk } from '../../lib/platform.js'
 import './AppFooter.css'
 
 const FEEDBACK_URL = 'https://github.com/aashutosh-prakash/evenup/issues/new'
@@ -6,6 +8,19 @@ const FEEDBACK_URL = 'https://github.com/aashutosh-prakash/evenup/issues/new'
 // App-level footer: quiet trust signals + meta actions (Feedback, Install).
 // Kept separate from the header, which owns per-split actions (Clear all data).
 export default function AppFooter() {
+  // Whether to warn about storage eviction depends on the real persisted()
+  // state, which is async — resolve it once after mount.
+  const [storageAtRisk, setStorageAtRisk] = useState(false)
+  useEffect(() => {
+    let active = true
+    isStorageEvictionRisk().then((risk) => {
+      if (active) setStorageAtRisk(risk)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <footer className="app-footer">
       <ul className="trust-chips" aria-label="About EvenKar">
@@ -56,6 +71,13 @@ export default function AppFooter() {
         </a>
         <InstallButton />
       </div>
+
+      {storageAtRisk && (
+        <p className="storage-note">
+          Splits are saved only in this browser and can be cleared if space runs low —
+          install the app or use Share to keep a copy.
+        </p>
+      )}
     </footer>
   )
 }
