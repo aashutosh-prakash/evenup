@@ -67,9 +67,12 @@
   color: #1c1e21;
   border-color: var(--border);
 }
+/* Save is a submit button (black bg, white ✓). Keep the tick white and just
+   lighten the background on hover — a green text tone merges into the black. */
 .icon-btn.save:hover {
-  color: var(--pos);
-  border-color: var(--pos);
+  background: #34373b;
+  border-color: #34373b;
+  color: #fff;
 }
 .people-notice {
   margin-top: 0.7rem;
