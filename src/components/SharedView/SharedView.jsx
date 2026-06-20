@@ -1,6 +1,5 @@
-import { personOf as findPerson } from '../../lib/expense.js'
-import { formatMoney } from '../../lib/settle.js'
 import Logo from '../Logo/Logo.jsx'
+import ExpenseList from '../ExpenseList/ExpenseList.jsx'
 import Summary from '../Summary/Summary.jsx'
 import AppFooter from '../AppFooter/AppFooter.jsx'
 import './SharedView.css'
@@ -10,7 +9,6 @@ import './SharedView.css'
 // to save a copy or exit, a read-only expense list, and the reused Summary +
 // AppFooter. No inputs, no dispatch — nothing here mutates state.
 export default function SharedView({ split, onSave, onExit }) {
-  const personOf = (id) => findPerson(split.people, id)
   const title = split.title?.trim() || ''
 
   return (
@@ -32,7 +30,7 @@ export default function SharedView({ split, onSave, onExit }) {
         <span className="shared-banner-text">You&apos;re viewing a shared split.</span>
         <div className="shared-banner-actions">
           <button type="button" className="shared-save" onClick={onSave}>
-            Save a copy to my device
+            Save a copy
           </button>
           <button type="button" className="shared-exit" onClick={onExit}>
             Exit
@@ -41,28 +39,7 @@ export default function SharedView({ split, onSave, onExit }) {
       </div>
 
       <main className="shared-main">
-        <h2>Expenses</h2>
-
-        <ul className="shared-expenses panel">
-          {split.expenses.map((e) => {
-            const payer = personOf(e.paidById)
-            const n = Array.isArray(e.participantIds) ? e.participantIds.length : 0
-            return (
-              <li key={e.id} className="shared-expense">
-                <div className="shared-expense-head">
-                  <span className="shared-expense-desc">
-                    {e.description || 'Expense'}
-                  </span>
-                  <span className="shared-expense-amount">{formatMoney(e.amount)}</span>
-                </div>
-                <p className="shared-expense-meta">
-                  Paid by {payer.name} · split {n} ways
-                </p>
-              </li>
-            )
-          })}
-        </ul>
-
+        <ExpenseList state={split} readOnly />
         <Summary state={split} showShare={false} />
       </main>
 

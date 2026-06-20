@@ -27,14 +27,14 @@ describe('SharedView', () => {
     expect(screen.getByText('Weekend Trip')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Expenses' })).toBeInTheDocument()
     expect(screen.getByText('Hotel')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /save a copy to my device/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /save a copy/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /exit/i })).toBeInTheDocument()
   })
 
-  it('does not offer Share in the read-only view', () => {
+  it('shows expenses read-only (no Edit/Remove or Share)', () => {
     render(<SharedView split={split} onSave={() => {}} onExit={() => {}} />)
+    expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /share this split/i }),
     ).not.toBeInTheDocument()
@@ -44,7 +44,7 @@ describe('SharedView', () => {
     const onSave = vi.fn()
     render(<SharedView split={split} onSave={onSave} onExit={() => {}} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /save a copy to my device/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save a copy/i }))
     expect(onSave).toHaveBeenCalledTimes(1)
   })
 
