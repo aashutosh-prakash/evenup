@@ -1,14 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import AppFooter from './AppFooter.jsx'
 
-const realUserAgent = window.navigator.userAgent
-
-function setUserAgent(value) {
-  Object.defineProperty(window.navigator, 'userAgent', { value, configurable: true })
-}
-
 afterEach(() => {
-  setUserAgent(realUserAgent)
+  delete navigator.storage
+  delete window.matchMedia
 })
 
 describe('AppFooter', () => {
@@ -18,22 +13,21 @@ describe('AppFooter', () => {
     expect(screen.getByText(/works offline/i)).toBeInTheDocument()
   })
 
-  it('shows the storage caveat on iOS when storage is not persisted', async () => {
-    setUserAgent(
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
-    )
+  it('shows the storage caveat when storage is not persistent', async () => {
+    // No Storage API → persistence can't be granted → data is at risk.
     render(<AppFooter />)
-    // Resolved asynchronously from navigator.storage.persisted().
-    expect(
-      await screen.findByText(/can be cleared after about a week/i),
-    ).toBeInTheDocument()
+    expect(await screen.findByText(/saved only in this browser/i)).toBeInTheDocument()
   })
 
-  it('omits the storage caveat in non-WebKit browsers', () => {
+  it('hides the storage caveat when storage is persisted', async () => {
+    const persisted = vi.fn().mockResolvedValue(true)
+    Object.defineProperty(navigator, 'storage', {
+      value: { persisted, persist: vi.fn() },
+      configurable: true,
+    })
     render(<AppFooter />)
-    expect(
-      screen.queryByText(/can be cleared after about a week/i),
-    ).not.toBeInTheDocument()
+    await waitFor(() => expect(persisted).toHaveBeenCalled())
+    expect(screen.queryByText(/saved only in this browser/i)).not.toBeInTheDocument()
   })
 
   it('links feedback to the GitHub issue tracker in a new tab', () => {

@@ -30,35 +30,25 @@ export function isDesktopSafari() {
   )
 }
 
-// True when this origin's saved data can actually be evicted. We check the
-// real granted state with navigator.storage.persisted() rather than assuming
-// from the platform: persisted storage is exempt from eviction, so if it's
-// granted we never warn. We still scope the warning to WebKit (iOS any browser,
-// or macOS Safari), because that's where best-effort storage is aggressively
-// capped (~7 days unused); on Blink/Gecko best-effort eviction only happens
-// under real disk pressure, so warning every Chrome user would be noise.
-export async function isStorageEvictionRisk() {
-  if (isStandalone()) return false
-  if (!(isIos() || isDesktopSafari())) return false
-  try {
-    // Persistence was actually granted (e.g. WebKit honored persist()) — safe.
-    if (await navigator.storage?.persisted?.()) return false
-  } catch {
-    // Storage API unavailable — fall through and treat as at-risk.
-  }
-  return true
-}
-
-// Ask the browser to exempt our storage from automatic eviction. Granted
-// broadly on Chromium/Gecko and for installed WebKit web apps; a harmless
-// no-op (resolves false) where unsupported or denied. Best-effort: never throws.
+// Ask the browser to exempt our storage from automatic eviction, and report
+// whether it is now persistent. Returns true if already persistent or newly
+// granted, false if denied/unsupported. Granted broadly on Chromium/Gecko and
+// for installed WebKit web apps. Best-effort: never throws.
 export async function requestPersistentStorage() {
   try {
-    if (navigator.storage?.persist && !(await navigator.storage.persisted())) {
-      return await navigator.storage.persist()
-    }
+    if (!navigator.storage?.persist) return false
+    if (await navigator.storage.persisted()) return true // already persistent
+    return await navigator.storage.persist() // request; true if granted
   } catch {
-    // Storage API unavailable or blocked — nothing to do.
+    // Storage API unavailable or blocked.
+    return false
   }
-  return false
+}
+
+// True when saved data can actually be evicted — i.e. the browser would not
+// grant persistent storage. We ask the browser directly (persisted/persist)
+// instead of guessing from the platform; installed web apps are never at risk.
+export async function isStorageEvictionRisk() {
+  if (isStandalone()) return false
+  return !(await requestPersistentStorage())
 }

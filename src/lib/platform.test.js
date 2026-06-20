@@ -1,77 +1,63 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { isStorageEvictionRisk, requestPersistentStorage } from './platform.js'
 
-const realUserAgent = window.navigator.userAgent
-const realVendor = window.navigator.vendor
-
-function setUserAgent(value) {
-  Object.defineProperty(window.navigator, 'userAgent', { value, configurable: true })
-}
-function setVendor(value) {
-  Object.defineProperty(window.navigator, 'vendor', { value, configurable: true })
-}
-
-afterEach(() => {
-  setUserAgent(realUserAgent)
-  setVendor(realVendor)
-  delete window.matchMedia
-  delete navigator.storage
-})
-
-const IOS_UA =
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15'
-
-function setPersisted(value) {
+// Mock the StorageManager. A real browser exposes persisted() and persist()
+// together, so the helper provides both.
+function setStorage({ persisted = false, persistGranted = false } = {}) {
   Object.defineProperty(navigator, 'storage', {
-    value: { persisted: vi.fn().mockResolvedValue(value) },
+    value: {
+      persisted: vi.fn().mockResolvedValue(persisted),
+      persist: vi.fn().mockResolvedValue(persistGranted),
+    },
     configurable: true,
   })
 }
 
-describe('isStorageEvictionRisk', () => {
-  it('is true on a non-installed iOS browser whose storage is not persisted', async () => {
-    setUserAgent(IOS_UA)
-    setPersisted(false)
-    expect(await isStorageEvictionRisk()).toBe(true)
-  })
-
-  it('is true on iOS when the Storage API is unavailable', async () => {
-    setUserAgent(IOS_UA)
-    expect(await isStorageEvictionRisk()).toBe(true)
-  })
-
-  it('is false on iOS once storage is actually persisted', async () => {
-    setUserAgent(IOS_UA)
-    setPersisted(true)
-    expect(await isStorageEvictionRisk()).toBe(false)
-  })
-
-  it('is false once installed (standalone)', async () => {
-    setUserAgent(IOS_UA)
-    window.matchMedia = vi.fn().mockReturnValue({ matches: true })
-    expect(await isStorageEvictionRisk()).toBe(false)
-  })
-
-  it('is false on a non-WebKit browser regardless of persisted state', async () => {
-    setUserAgent('Mozilla/5.0 (Windows NT 10.0) Chrome/120.0 Safari/537.36')
-    setVendor('Google Inc.')
-    setPersisted(false)
-    expect(await isStorageEvictionRisk()).toBe(false)
-  })
+afterEach(() => {
+  delete window.matchMedia
+  delete navigator.storage
 })
 
 describe('requestPersistentStorage', () => {
-  it('resolves false when the Storage API is unavailable', async () => {
+  it('returns false when the Storage API is unavailable', async () => {
     expect(await requestPersistentStorage()).toBe(false)
   })
 
-  it('requests persistence only when not already persisted', async () => {
-    const persist = vi.fn().mockResolvedValue(true)
-    Object.defineProperty(navigator, 'storage', {
-      value: { persist, persisted: vi.fn().mockResolvedValue(false) },
-      configurable: true,
-    })
+  it('returns true without requesting when already persisted', async () => {
+    setStorage({ persisted: true })
     expect(await requestPersistentStorage()).toBe(true)
-    expect(persist).toHaveBeenCalledOnce()
+    expect(navigator.storage.persist).not.toHaveBeenCalled()
+  })
+
+  it('requests and returns the grant result when not yet persisted', async () => {
+    setStorage({ persisted: false, persistGranted: true })
+    expect(await requestPersistentStorage()).toBe(true)
+    expect(navigator.storage.persist).toHaveBeenCalledOnce()
+  })
+})
+
+describe('isStorageEvictionRisk', () => {
+  it('is true when the browser will not grant persistence', async () => {
+    setStorage({ persisted: false, persistGranted: false })
+    expect(await isStorageEvictionRisk()).toBe(true)
+  })
+
+  it('is true when the Storage API is unavailable', async () => {
+    expect(await isStorageEvictionRisk()).toBe(true)
+  })
+
+  it('is false when storage is already persisted', async () => {
+    setStorage({ persisted: true })
+    expect(await isStorageEvictionRisk()).toBe(false)
+  })
+
+  it('is false when persistence is granted on request', async () => {
+    setStorage({ persisted: false, persistGranted: true })
+    expect(await isStorageEvictionRisk()).toBe(false)
+  })
+
+  it('is false once installed (standalone), without touching storage', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true })
+    expect(await isStorageEvictionRisk()).toBe(false)
   })
 })

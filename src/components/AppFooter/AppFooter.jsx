@@ -74,8 +74,8 @@ export default function AppFooter() {
 
       {storageAtRisk && (
         <p className="storage-note">
-          On iPhone, iPad, and Safari, saved splits can be cleared after about a week
-          unused. Install the app to keep them — or use Share to save a copy.
+          Your splits are saved only in this browser, so they can be cleared if it runs
+          low on space. Install the app to keep them — or use Share to save a copy.
         </p>
       )}
     </footer>
