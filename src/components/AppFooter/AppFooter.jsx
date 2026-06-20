@@ -74,8 +74,8 @@ export default function AppFooter() {
 
       {storageAtRisk && (
         <p className="storage-note">
-          Your splits are saved only in this browser, so they can be cleared if it runs
-          low on space. Install the app to keep them — or use Share to save a copy.
+          Splits are saved only in this browser and can be cleared if space runs low —
+          install the app or use Share to keep a copy.
         </p>
       )}
     </footer>

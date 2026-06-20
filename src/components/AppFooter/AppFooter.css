@@ -66,7 +66,7 @@
 .storage-note {
   flex-basis: 100%;
   margin: 0.3rem 0 0;
-  padding-inline: max(0px, (100% - 44ch) / 2);
+  padding-inline: max(0px, (100% - 62ch) / 2);
   font-size: 0.75rem;
   line-height: 1.45;
   color: #80868b;
