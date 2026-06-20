@@ -8,11 +8,14 @@
 }
 
 /* The split title sits beside the wordmark, mirroring the editor's title input
-   (but read-only). */
+   (but read-only). Match the input's padding + border box so it aligns
+   identically in the flex-end brand row. */
 .shared-title {
   font-size: 1.15rem;
   font-weight: 600;
   color: #6b7280;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid transparent;
   min-width: 0;
   overflow-wrap: anywhere;
 }
