@@ -42,13 +42,27 @@ export default function SharedView({ split, onSave, onExit }) {
           <div className="receipt-rule" />
 
           <ul className="receipt-lines">
-            {split.expenses.map((e) => (
-              <li key={e.id} className="receipt-line">
-                <span className="receipt-desc">{e.description || 'Expense'}</span>
-                <span className="receipt-dots" aria-hidden="true" />
-                <span className="receipt-amt">{formatMoney(e.amount)}</span>
-              </li>
-            ))}
+            {split.expenses.map((e) => {
+              const payer = e.paidById ? personOf(e.paidById) : null
+              const names = e.participantIds.map((id) => personOf(id).name).join(', ')
+              return (
+                <li key={e.id} className="receipt-exp">
+                  <div className="receipt-line">
+                    <span className="receipt-desc">{e.description || 'Expense'}</span>
+                    <span className="receipt-dots" aria-hidden="true" />
+                    <span className="receipt-amt">{formatMoney(e.amount)}</span>
+                  </div>
+                  <p className="receipt-meta">
+                    {payer && (
+                      <>
+                        paid <strong>{payer.name}</strong> ·{' '}
+                      </>
+                    )}
+                    split {names || '—'}
+                  </p>
+                </li>
+              )
+            })}
           </ul>
 
           <div className="receipt-rule" />
@@ -60,13 +74,15 @@ export default function SharedView({ split, onSave, onExit }) {
           <div className="receipt-rule dashed" />
           <p className="receipt-section">Who paid</p>
           <ul className="receipt-lines">
-            {split.people.map((p) => (
-              <li key={p.id} className="receipt-line">
-                <span className="receipt-desc">{p.name}</span>
-                <span className="receipt-dots" aria-hidden="true" />
-                <span className="receipt-amt">{formatMoney(paid[p.id] ?? 0)}</span>
-              </li>
-            ))}
+            {split.people
+              .filter((p) => (paid[p.id] ?? 0) > 0)
+              .map((p) => (
+                <li key={p.id} className="receipt-line">
+                  <span className="receipt-desc">{p.name}</span>
+                  <span className="receipt-dots" aria-hidden="true" />
+                  <span className="receipt-amt">{formatMoney(paid[p.id] ?? 0)}</span>
+                </li>
+              ))}
           </ul>
 
           <div className="receipt-rule dashed" />

@@ -130,6 +130,27 @@
   gap: 0;
   padding: 0.18rem 0;
 }
+/* An expense = its amount line + a muted "paid / split" sub-line. */
+.receipt-exp {
+  padding: 0.3rem 0;
+}
+.receipt-exp + .receipt-exp {
+  border-top: 1px dotted #ededed;
+}
+.receipt-exp .receipt-line {
+  padding: 0;
+}
+.receipt-meta {
+  margin: 0.15rem 0 0;
+  padding-left: 0.2rem;
+  font-size: 0.72rem;
+  color: #8a8a8a;
+  overflow-wrap: anywhere;
+}
+.receipt-meta strong {
+  color: #5a5a5a;
+  font-weight: 600;
+}
 .receipt-desc {
   overflow-wrap: anywhere;
 }
