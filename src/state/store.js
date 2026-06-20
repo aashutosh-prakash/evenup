@@ -169,6 +169,17 @@ export function reducer(state, action) {
         ],
       }
 
+    case 'RENAME_PERSON': {
+      // Only the display name changes; id and colorIndex stay put, so every
+      // expense that references this person (and their avatar) is unaffected.
+      const name = typeof action.name === 'string' ? action.name.trim() : ''
+      if (!name) return state
+      return {
+        ...state,
+        people: state.people.map((p) => (p.id === action.id ? { ...p, name } : p)),
+      }
+    }
+
     case 'REMOVE_PERSON':
       // Enforce referential integrity at the reducer (the single source of
       // truth), not just in the UI: refuse to remove a person still referenced

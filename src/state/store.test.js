@@ -31,6 +31,24 @@ describe('person color assignment', () => {
   })
 })
 
+describe('RENAME_PERSON', () => {
+  it('changes the name while keeping id and colorIndex stable', () => {
+    let s = { people: [], expenses: [] }
+    s = reducer(s, { type: 'ADD_PERSON', name: 'Alice' })
+    const { id, colorIndex } = s.people[0]
+    s = reducer(s, { type: 'RENAME_PERSON', id, name: '  Alicia  ' })
+    expect(s.people[0]).toEqual({ id, name: 'Alicia', colorIndex })
+  })
+
+  it('ignores an empty/whitespace name', () => {
+    let s = { people: [], expenses: [] }
+    s = reducer(s, { type: 'ADD_PERSON', name: 'Alice' })
+    const before = s
+    s = reducer(s, { type: 'RENAME_PERSON', id: s.people[0].id, name: '   ' })
+    expect(s).toBe(before)
+  })
+})
+
 describe('REMOVE_PERSON referential integrity', () => {
   it('removes a person who is not referenced by any expense', () => {
     let s = { people: [], expenses: [], title: '' }
