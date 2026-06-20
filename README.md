@@ -17,10 +17,11 @@ stays in `localStorage` on your device.
   owed, red when they owe).
 - **Plain-language settlement** — a greedy "who pays whom" summary that keeps
   the transaction count small and always reconciles fully.
-- **Share** — one tap shares a compressed, read-only **link** to the split (a
-  clean view with a "Save a copy to my device" button). The split is encoded in
-  the URL hash, so no server ever sees it. When a split is too large to fit in a
-  link, it automatically falls back to copying/sharing a plain-text summary.
+- **Share** — one tap shares a compressed, read-only **link** to the split,
+  shown as a **receipt** (who paid, who shares each expense, settle-up, and the
+  share date) with a "Save a copy" button. The split is encoded in the URL hash,
+  so no server ever sees it. When a split is too large to fit in a link, it
+  automatically falls back to copying/sharing a plain-text summary.
 - **Name the split** — give the trip/event a title that rides along in the
   shared link and summary.
 - **Durable storage** — requests persistent storage so the browser won't evict
