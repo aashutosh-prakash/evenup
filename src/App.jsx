@@ -3,6 +3,7 @@ import { reducer, loadState, saveState } from './state/store.js'
 import { MIN_PEOPLE } from './lib/expense.js'
 import { requestPersistentStorage } from './lib/platform.js'
 import { readSharedFromHash } from './lib/share-link.js'
+import Logo from './components/Logo/Logo.jsx'
 import PeoplePanel from './components/PeoplePanel/PeoplePanel.jsx'
 import ExpenseForm from './components/ExpenseForm/ExpenseForm.jsx'
 import ExpenseList from './components/ExpenseList/ExpenseList.jsx'
@@ -79,23 +80,7 @@ export default function App() {
         <div className="app-title">
           <div className="brand-row">
             <span className="brand-name">
-              <svg
-                className="brand-logo"
-                viewBox="0 0 512 512"
-                role="img"
-                aria-label="EvenKar logo"
-              >
-                <polyline
-                  points="150,215 256,130 362,215"
-                  fill="none"
-                  stroke="#1c1e21"
-                  strokeWidth="46"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <rect x="150" y="285" width="212" height="44" rx="22" fill="#1c1e21" />
-                <rect x="150" y="357" width="212" height="44" rx="22" fill="#1c1e21" />
-              </svg>
+              <Logo />
               <h1>EvenKar</h1>
             </span>
             <input

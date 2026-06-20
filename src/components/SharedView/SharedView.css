@@ -1,18 +1,20 @@
-/* Read-only shared-link view. Reuses the global .app shell and .panel look;
-   only the banner and the read-only expense rows need bespoke styles. */
+/* Read-only shared-link view. Reuses the global .app shell, header, and .panel
+   look; only the banner and read-only expense rows need bespoke styles. */
 
-.shared-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 1.5rem;
+/* A single read-only column doesn't need the full editor width — keep it a
+   comfortable reading measure so the summary isn't over-stretched on desktop. */
+.app.shared-app {
+  max-width: 640px;
 }
-.shared-header h1 {
-  margin: 0;
-}
-.shared-subtitle {
-  margin: 0;
-  color: #666;
+
+/* The split title sits beside the wordmark, mirroring the editor's title input
+   (but read-only). */
+.shared-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .shared-banner {

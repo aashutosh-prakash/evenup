@@ -1,5 +1,6 @@
 import { personOf as findPerson } from '../../lib/expense.js'
 import { formatMoney } from '../../lib/settle.js'
+import Logo from '../Logo/Logo.jsx'
 import Summary from '../Summary/Summary.jsx'
 import AppFooter from '../AppFooter/AppFooter.jsx'
 import './SharedView.css'
@@ -10,13 +11,21 @@ import './SharedView.css'
 // AppFooter. No inputs, no dispatch — nothing here mutates state.
 export default function SharedView({ split, onSave, onExit }) {
   const personOf = (id) => findPerson(split.people, id)
-  const title = split.title?.trim() ? split.title : 'Shared split'
+  const title = split.title?.trim() || ''
 
   return (
-    <div className="app">
-      <header className="shared-header">
-        <h1>EvenKar</h1>
-        <p className="shared-subtitle">Shared split</p>
+    <div className="app shared-app">
+      <header className="app-header">
+        <div className="app-title">
+          <div className="brand-row">
+            <span className="brand-name">
+              <Logo />
+              <h1>EvenKar</h1>
+            </span>
+            {title && <span className="shared-title">{title}</span>}
+          </div>
+          <p className="tagline">Shared split</p>
+        </div>
       </header>
 
       <div className="shared-banner" role="region" aria-label="Shared split actions">
@@ -32,7 +41,7 @@ export default function SharedView({ split, onSave, onExit }) {
       </div>
 
       <main className="shared-main">
-        <h2>{title}</h2>
+        <h2>Expenses</h2>
 
         <ul className="shared-expenses panel">
           {split.expenses.map((e) => {

@@ -23,7 +23,9 @@ describe('SharedView', () => {
   it('shows the title, the expense, and both actions', () => {
     render(<SharedView split={split} onSave={() => {}} onExit={() => {}} />)
 
-    expect(screen.getByRole('heading', { name: 'Weekend Trip' })).toBeInTheDocument()
+    // Title sits beside the brand (not as a heading); "Expenses" is the heading.
+    expect(screen.getByText('Weekend Trip')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Expenses' })).toBeInTheDocument()
     expect(screen.getByText('Hotel')).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /save a copy to my device/i }),
