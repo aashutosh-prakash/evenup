@@ -179,6 +179,11 @@
   margin: 0;
   text-align: center;
 }
+.receipt-empty {
+  margin: 0.5rem 0;
+  text-align: center;
+  color: #888;
+}
 .receipt-thanks {
   margin: 0;
   text-align: center;
