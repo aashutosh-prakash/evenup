@@ -76,6 +76,9 @@
 .settle-text {
   flex: 1;
   min-width: 0;
+  /* Wrap long names — and break a single over-long name if needed — so the
+     label can never overflow its column and collide with the amount. */
+  overflow-wrap: anywhere;
 }
 .settle-text strong {
   font-weight: 600;
@@ -86,7 +89,9 @@
   margin: 0 0.35rem;
 }
 .settle-amount {
-  margin-left: auto;
+  flex: none;
+  padding-left: 0.5rem;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+  white-space: nowrap;
 }

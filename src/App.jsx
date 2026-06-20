@@ -38,7 +38,7 @@ export default function App() {
                 className="brand-logo"
                 viewBox="0 0 512 512"
                 role="img"
-                aria-label="EvenUp logo"
+                aria-label="EvenKar logo"
               >
                 <rect
                   x="16"
@@ -61,7 +61,7 @@ export default function App() {
                 <rect x="150" y="285" width="212" height="44" rx="22" fill="#1c1e21" />
                 <rect x="150" y="357" width="212" height="44" rx="22" fill="#1c1e21" />
               </svg>
-              <h1>EvenUp</h1>
+              <h1>EvenKar</h1>
             </span>
             <input
               type="text"

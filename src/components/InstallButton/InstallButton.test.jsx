@@ -42,7 +42,7 @@ describe('InstallButton', () => {
       window.dispatchEvent(event)
     })
 
-    const btn = await screen.findByRole('button', { name: /install evenup app/i })
+    const btn = await screen.findByRole('button', { name: /install evenkar app/i })
     await act(async () => {
       fireEvent.click(btn)
     })
@@ -56,7 +56,7 @@ describe('InstallButton', () => {
     window.matchMedia = vi.fn().mockReturnValue({ matches: false })
     render(<InstallButton />)
 
-    fireEvent.click(screen.getByRole('button', { name: /install evenup app/i }))
+    fireEvent.click(screen.getByRole('button', { name: /install evenkar app/i }))
     expect(screen.getByRole('dialog', { name: /how to install/i })).toBeInTheDocument()
     expect(screen.getByText(/add to home screen/i)).toBeInTheDocument()
   })
@@ -69,7 +69,7 @@ describe('InstallButton', () => {
     window.matchMedia = vi.fn().mockReturnValue({ matches: false })
     render(<InstallButton />)
 
-    fireEvent.click(screen.getByRole('button', { name: /install evenup app/i }))
+    fireEvent.click(screen.getByRole('button', { name: /install evenkar app/i }))
     expect(screen.getByText(/add to dock/i)).toBeInTheDocument()
   })
 })

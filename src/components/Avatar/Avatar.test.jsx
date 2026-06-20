@@ -16,4 +16,27 @@ describe('Avatar', () => {
     render(<Avatar person={{ id: 'p9', name: 'Zoe' }} />)
     expect(screen.getByText('Z')).toBeInTheDocument()
   })
+
+  it('uses the color-index palette for the background and initials', () => {
+    const { container } = render(
+      <Avatar person={{ id: 'p1', name: 'Alice Bob', colorIndex: 0 }} />,
+    )
+    const circle = container.querySelector('circle')
+    const text = container.querySelector('text')
+    expect(circle.getAttribute('fill')).toBe('#bbdefb')
+    expect(text.getAttribute('fill')).toBe('#1565c0')
+  })
+
+  it('gives two different color indexes different backgrounds', () => {
+    const { container } = render(
+      <>
+        <Avatar person={{ id: 'p1', name: 'Alice', colorIndex: 0 }} />
+        <Avatar person={{ id: 'p2', name: 'Bob', colorIndex: 1 }} />
+      </>,
+    )
+    const fills = [...container.querySelectorAll('circle')].map((c) =>
+      c.getAttribute('fill'),
+    )
+    expect(fills[0]).not.toBe(fills[1])
+  })
 })

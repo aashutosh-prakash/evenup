@@ -1,6 +1,6 @@
 {
-  "name": "EvenUp — Split expenses",
-  "short_name": "EvenUp",
+  "name": "EvenKar — Split expenses",
+  "short_name": "EvenKar",
   "description": "Split shared expenses equally and settle up. Runs entirely in your browser — no login, no server.",
   "start_url": "/",
   "scope": "/",

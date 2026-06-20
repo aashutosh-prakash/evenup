@@ -74,7 +74,7 @@ export default function Summary({ state }) {
             </li>
           </ul>
 
-          <h3>Settle up</h3>
+          <h3>Settlements</h3>
           <ul className="settlements">
             {txns.length === 0 && <li className="empty">Everyone is settled.</li>}
             {txns.map((t, i) => {

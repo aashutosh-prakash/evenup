@@ -84,7 +84,7 @@ export default function InstallButton() {
       <button
         type="button"
         className="install-btn"
-        aria-label="Install EvenUp app"
+        aria-label="Install EvenKar app"
         onClick={onClick}
       >
         <svg
@@ -104,12 +104,12 @@ export default function InstallButton() {
         <div
           className="install-sheet"
           role="dialog"
-          aria-label="How to install EvenUp"
+          aria-label="How to install EvenKar"
           onKeyDown={(e) => {
             if (e.key === 'Escape') setShowSheet(false)
           }}
         >
-          <p className="install-sheet-title">Install EvenUp</p>
+          <p className="install-sheet-title">Install EvenKar</p>
           <p className="install-sheet-body">
             {manual === 'ios' ? (
               <>

@@ -121,7 +121,7 @@ body {
   }
 }
 /* On narrow screens keep the split-name input on the heading row: let it
-   shrink and fill the remaining space instead of wrapping below "EvenUp". */
+   shrink and fill the remaining space instead of wrapping below "EvenKar". */
 @media (max-width: 560px) {
   .brand-row {
     flex-wrap: nowrap;

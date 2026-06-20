@@ -21,7 +21,7 @@ export function buildSummaryText(state) {
   const txns = settle(computeBalances(people, expenses))
 
   const title = (state.title || '').trim()
-  const heading = title ? `EvenUp — ${title}` : 'EvenUp summary'
+  const heading = title ? `EvenKar — ${title}` : 'EvenKar summary'
   const lines = [heading]
 
   lines.push('', 'Paid:')
@@ -32,7 +32,7 @@ export function buildSummaryText(state) {
   }
   lines.push(`Total expenses: ${money(computeTotal(expenses))}`)
 
-  lines.push('', 'Settle up:')
+  lines.push('', 'Settlements:')
   if (txns.length === 0) {
     lines.push('• Everyone is settled 🎉')
   } else {

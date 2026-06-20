@@ -21,13 +21,13 @@ const state = {
 describe('buildSummaryText', () => {
   it('lists only people who paid, drops .00 on whole amounts, and uses arrows', () => {
     const text = buildSummaryText(state)
-    expect(text).toContain('EvenUp — Goa Trip')
+    expect(text).toContain('EvenKar — Goa Trip')
     expect(text).toContain('Paid:')
     expect(text).toContain('• Aashutosh: 100') // whole amount → no ".00"
     expect(text).not.toContain('100.00')
     expect(text).not.toContain('• Pooja: 0') // paid nothing → omitted from Paid
     expect(text).toContain('Total expenses: 100')
-    expect(text).toContain('Settle up:')
+    expect(text).toContain('Settlements:')
     expect(text).toContain('Pooja → Aashutosh: 50') // still appears in settle-up
     // No per-expense list anymore.
     expect(text).not.toContain('Expenses:')
@@ -63,7 +63,7 @@ describe('buildSummaryText', () => {
       people: [{ id: 'p1', name: 'A' }],
       expenses: [],
     })
-    expect(text).toContain('EvenUp summary')
+    expect(text).toContain('EvenKar summary')
     expect(text).toContain('Total expenses: 0')
     expect(text).toContain('• Everyone is settled')
   })
