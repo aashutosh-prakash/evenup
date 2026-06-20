@@ -5,8 +5,9 @@ import './ShareLinkButton.css'
 export default function ShareLinkButton({ state }) {
   const [status, setStatus] = useState('')
 
-  // Nothing to share by link until there are people.
-  if (state.people.length === 0) return null
+  // Nothing meaningful to view until there's at least one expense — mirror the
+  // text Share button so both share actions appear together.
+  if (state.expenses.length === 0) return null
 
   async function onShare() {
     const url = buildShareUrl(state)

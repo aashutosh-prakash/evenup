@@ -14,12 +14,12 @@ const state = {
     { id: 'p1', name: 'Alice' },
     { id: 'p2', name: 'Bob' },
   ],
-  expenses: [],
+  expenses: [{ id: 'e1', amount: 10, paidById: 'p1', participantIds: ['p1', 'p2'] }],
 }
 
 describe('ShareLinkButton', () => {
-  it('renders nothing without people', () => {
-    const { container } = render(<ShareLinkButton state={{ ...state, people: [] }} />)
+  it('renders nothing until there is an expense', () => {
+    const { container } = render(<ShareLinkButton state={{ ...state, expenses: [] }} />)
     expect(container).toBeEmptyDOMElement()
   })
 
