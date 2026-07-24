@@ -7,6 +7,8 @@ import './ExpenseList.css'
 
 export default function ExpenseList({ state, dispatch }) {
   const [editingId, setEditingId] = useState(null)
+  // Which expense's Remove is awaiting confirmation (only one at a time).
+  const [confirmingId, setConfirmingId] = useState(null)
   const personOf = (id) => findPerson(state.people, id)
 
   return (
@@ -36,42 +38,82 @@ export default function ExpenseList({ state, dispatch }) {
                       <strong className="expense-desc">{exp.description}</strong>
                       <span className="expense-amount">{formatMoney(exp.amount)}</span>
                     </div>
-                    <div className="expense-meta">
-                      <span className="meta-group">
-                        <span className="meta-label">Paid by</span>
-                        <Avatar person={personOf(exp.paidById)} size="sm" />
-                      </span>
-                      <span className="meta-group">
-                        <span className="meta-label">Split</span>
-                        <span
-                          className="avatar-stack"
-                          role="group"
-                          aria-label={`Split among ${participants
-                            .map((p) => p.name)
-                            .join(', ')}`}
-                        >
-                          {participants.map((p) => (
-                            <Avatar key={p.id} person={p} size="sm" />
-                          ))}
+                    {confirmingId === exp.id ? (
+                      // Swap only the meta row for the confirm bar: the row keeps
+                      // the same width and height, so the list below never shifts.
+                      <div
+                        className="expense-meta expense-confirm"
+                        role="alertdialog"
+                        aria-label="Confirm removal"
+                      >
+                        <span className="expense-confirm-text">
+                          Remove <strong>{exp.description || 'this expense'}</strong>?
                         </span>
-                      </span>
-                      <span className="expense-actions">
-                        <button
-                          type="button"
-                          className="link-btn"
-                          onClick={() => setEditingId(exp.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="remove-btn"
-                          onClick={() => dispatch({ type: 'REMOVE_EXPENSE', id: exp.id })}
-                        >
-                          Remove
-                        </button>
-                      </span>
-                    </div>
+                        <span className="expense-confirm-actions">
+                          <button
+                            type="button"
+                            className="link-btn"
+                            // Clicking Remove unmounts its button; move focus to
+                            // the safe (Cancel) action so keyboard/AT users land
+                            // inside the prompt instead of at document.body.
+                            autoFocus
+                            onClick={() => setConfirmingId(null)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            className="remove-btn"
+                            onClick={() => {
+                              dispatch({ type: 'REMOVE_EXPENSE', id: exp.id })
+                              setConfirmingId(null)
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="expense-meta">
+                        <span className="meta-group">
+                          <span className="meta-label">Paid by</span>
+                          <Avatar person={personOf(exp.paidById)} size="sm" />
+                        </span>
+                        <span className="meta-group">
+                          <span className="meta-label">Split</span>
+                          <span
+                            className="avatar-stack"
+                            role="group"
+                            aria-label={`Split among ${participants
+                              .map((p) => p.name)
+                              .join(', ')}`}
+                          >
+                            {participants.map((p) => (
+                              <Avatar key={p.id} person={p} size="sm" />
+                            ))}
+                          </span>
+                        </span>
+                        <span className="expense-actions">
+                          <button
+                            type="button"
+                            className="link-btn"
+                            onClick={() => {
+                              setConfirmingId(null)
+                              setEditingId(exp.id)
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="remove-btn"
+                            onClick={() => setConfirmingId(exp.id)}
+                          >
+                            Remove
+                          </button>
+                        </span>
+                      </div>
+                    )}
                   </>
                 )}
               </li>

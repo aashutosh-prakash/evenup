@@ -35,6 +35,9 @@
   color: #666;
   font-size: 0.85rem;
   margin: 0.4rem 0 0;
+  /* Match the avatar row's height so swapping in the confirm bar (text +
+     buttons, which are shorter than avatars) doesn't shrink the row. */
+  min-height: 1.625rem;
 }
 .meta-group {
   display: inline-flex;
@@ -61,4 +64,26 @@
   font-size: 0.75rem;
   color: #1e88e5;
   border-color: #c5dcf5;
+}
+/* Confirm bar occupies the meta row (inherits .expense-meta): only Remove was
+   clicked, so it keeps the row's width and height and the list never shifts. */
+.expense-confirm {
+  justify-content: space-between;
+  /* Keep everything on one line — inherited .expense-meta wraps, and a long
+     description would otherwise push the row taller than the avatar row. */
+  flex-wrap: nowrap;
+}
+.expense-confirm-text {
+  min-width: 0;
+  /* Clamp a long description to one line (…) so the row height stays fixed. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #333;
+}
+.expense-confirm-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }

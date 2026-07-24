@@ -4,10 +4,23 @@ import {
   fromCents,
   computeBalances,
   settle,
+  settlementKey,
   computePaidTotals,
   computeTotal,
   formatMoney,
 } from './settle.js'
+
+describe('settlementKey', () => {
+  it('encodes payer, payee and cent amount', () => {
+    expect(settlementKey({ fromId: 'a', toId: 'b', amount: 12.5 })).toBe('a::b::1250')
+  })
+
+  it('is stable for equal transactions and differs when the amount changes', () => {
+    const t = { fromId: 'a', toId: 'b', amount: 30 }
+    expect(settlementKey(t)).toBe(settlementKey({ ...t }))
+    expect(settlementKey(t)).not.toBe(settlementKey({ ...t, amount: 31 }))
+  })
+})
 
 describe('money helpers', () => {
   it('toCents rounds to nearest cent', () => {
@@ -40,14 +53,34 @@ describe('computeBalances', () => {
     expect(computeBalances(people, expenses)).toEqual({ a: 20, b: -10, c: -10 })
   })
 
-  it('assigns the remainder penny deterministically by participant id order', () => {
+  it('assigns the remainder penny by participant array order, not id sort', () => {
+    // participantIds are given as [c, b, a]; the first listed (c) absorbs the
+    // leftover cent — independent of how the id strings sort.
     const expenses = [
       { id: 'e1', amount: 10, paidById: 'a', participantIds: ['c', 'b', 'a'] },
     ]
     const bal = computeBalances(people, expenses)
-    expect(bal.a).toBe(6.66)
+    expect(bal.a).toBe(6.67) // payer, base share only
     expect(bal.b).toBe(-3.33)
-    expect(bal.c).toBe(-3.33)
+    expect(bal.c).toBe(-3.34) // first in the list takes the extra cent
+  })
+
+  it('remainder placement is independent of id spelling (shared-link determinism)', () => {
+    // A shared link regenerates random ids on every decode. The penny must land
+    // on the same *position*, not whichever id happens to sort first, or the
+    // shared view flips 53.33/53.34 and reshuffles on refresh.
+    const balAt = (ids) =>
+      computeBalances(
+        ids.map((id) => ({ id })),
+        [{ id: 'e', amount: 10, paidById: ids[0], participantIds: ids }],
+      )
+    // ids whose lexical order matches array order vs. ids that sort differently.
+    const inOrder = balAt(['a', 'b', 'c'])
+    const shuffled = balAt(['zzz', 'mmm', 'aaa'])
+    // Position 0 (payer) and positions 1/2 must net identically in both.
+    expect(shuffled['zzz']).toBe(inOrder['a'])
+    expect(shuffled['mmm']).toBe(inOrder['b'])
+    expect(shuffled['aaa']).toBe(inOrder['c'])
   })
 
   it('balances always sum to zero', () => {

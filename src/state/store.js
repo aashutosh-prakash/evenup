@@ -1,5 +1,7 @@
-// Single source of truth: { people, expenses, title }.
+// Single source of truth: { people, expenses, title, paidSettlements }.
 // Persisted as one JSON blob in localStorage.
+
+import { computeBalances, settle, settlementKey } from '../lib/settle.js'
 
 export const STORAGE_KEY = 'evenup.state'
 // Bump when the persisted shape changes in a way that needs migration.
@@ -19,6 +21,11 @@ export const initialState = {
   people: [],
   expenses: [],
   title: '',
+  // Keys (fromId::toId::cents) of settlements the user has stamped "paid".
+  // Purely a local display marker — never affects balance math, and
+  // deliberately NOT shared: encodeSplit and buildSummaryText omit it, so a
+  // recipient always sees the canonical outstanding split.
+  paidSettlements: [],
 }
 
 // Collision-resistant unique id. Prefers crypto.randomUUID() (available in all
@@ -71,14 +78,61 @@ function sanitizeState(parsed) {
       .map(sanitizePerson)
       .filter(Boolean),
   )
-  const validIds = new Set(people.map((p) => p.id))
+  const peopleIds = people.map((p) => p.id)
+  const validIds = new Set(peopleIds)
   const expenses = (Array.isArray(parsed?.expenses) ? parsed.expenses : [])
-    .map((e) => sanitizeExpense(e, validIds))
+    .map((e) => sanitizeExpense(e, validIds, peopleIds))
     .filter(Boolean)
-  return {
+  const state = {
     people,
     expenses,
     title: typeof parsed?.title === 'string' ? parsed.title : '',
+    // Keep only string keys, then drop any that no longer map to a live
+    // settlement (e.g. amounts changed since this was saved/shared).
+    paidSettlements: prunePaid(
+      (Array.isArray(parsed?.paidSettlements) ? parsed.paidSettlements : []).filter(
+        (k) => typeof k === 'string',
+      ),
+      people,
+      expenses,
+    ),
+  }
+  return state
+}
+
+// Orders participant ids to match the people array, so an expense's "split
+// among" always renders in Members order regardless of the order boxes were
+// ticked. NOTE: this is load-bearing for money math too — computeBalances
+// assigns the remainder cent in participant order (it no longer sorts by id),
+// so this ordering is what keeps the penny placement deterministic.
+function orderByPeople(ids, peopleIds) {
+  const rank = new Map(peopleIds.map((id, i) => [id, i]))
+  return [...ids].sort((a, b) => (rank.get(a) ?? 0) - (rank.get(b) ?? 0))
+}
+
+// The set of settlement keys implied by the current people + expenses.
+function liveSettlementKeys(people, expenses) {
+  return new Set(settle(computeBalances(people, expenses)).map(settlementKey))
+}
+
+// Drops "paid" keys that no longer correspond to a current settlement, so a
+// stamp can't linger (or spuriously reappear) after balances change. Skips the
+// balance/settle recompute entirely when nothing is stamped — the common case
+// for anyone who never taps a Paid stamp.
+function prunePaid(paidSettlements, people, expenses) {
+  if (paidSettlements.length === 0) return paidSettlements
+  const live = liveSettlementKeys(people, expenses)
+  return paidSettlements.filter((k) => live.has(k))
+}
+
+// Applies an expenses change and re-prunes stale paid stamps in one place, so
+// every expense-mutating action keeps paidSettlements consistent (and a future
+// action that forgets to prune can't reintroduce stale stamps).
+function withExpenses(state, expenses) {
+  return {
+    ...state,
+    expenses,
+    paidSettlements: prunePaid(paidOf(state), state.people, expenses),
   }
 }
 
@@ -96,14 +150,17 @@ function sanitizePerson(p) {
 
 // Coerce a single persisted expense into a well-formed record, dropping any
 // participant ids that don't map to a known person. Returns null if unsalvageable.
-function sanitizeExpense(e, validIds) {
+function sanitizeExpense(e, validIds, peopleIds) {
   if (!e || typeof e !== 'object') return null
   const id = typeof e.id === 'string' && e.id ? e.id : null
   if (!id) return null
   const amountNum = Number(e.amount)
   const amount = Number.isFinite(amountNum) ? amountNum : 0
-  const participantIds = (Array.isArray(e.participantIds) ? e.participantIds : []).filter(
-    (pid) => validIds.has(pid),
+  const participantIds = orderByPeople(
+    (Array.isArray(e.participantIds) ? e.participantIds : []).filter((pid) =>
+      validIds.has(pid),
+    ),
+    peopleIds,
   )
   const paidById = validIds.has(e.paidById) ? e.paidById : ''
   return {
@@ -137,7 +194,11 @@ export function loadState() {
 // "this app was used" marker behind.
 export function saveState(state) {
   try {
-    const empty = state.people.length === 0 && state.expenses.length === 0 && !state.title
+    const empty =
+      state.people.length === 0 &&
+      state.expenses.length === 0 &&
+      !state.title &&
+      paidOf(state).length === 0
     if (empty) {
       localStorage.removeItem(STORAGE_KEY)
     } else {
@@ -156,16 +217,21 @@ export function saveState(state) {
 // reducer (the source of truth) enforces the same finite-amount and
 // referential-integrity invariants that loadState applies to persisted data.
 function normalizeExpenseFields(fields, people) {
-  const validIds = new Set(people.map((p) => p.id))
+  const peopleIds = people.map((p) => p.id)
+  const validIds = new Set(peopleIds)
   const amount = Number(fields.amount)
   return {
     description: typeof fields.description === 'string' ? fields.description : '',
     amount: Number.isFinite(amount) ? amount : 0,
     paidById: validIds.has(fields.paidById) ? fields.paidById : '',
-    participantIds: (Array.isArray(fields.participantIds)
-      ? fields.participantIds
-      : []
-    ).filter((id) => validIds.has(id)),
+    // Store in Members order so the split renders consistently no matter what
+    // order the checkboxes were toggled.
+    participantIds: orderByPeople(
+      (Array.isArray(fields.participantIds) ? fields.participantIds : []).filter((id) =>
+        validIds.has(id),
+      ),
+      peopleIds,
+    ),
   }
 }
 
@@ -199,30 +265,45 @@ export function reducer(state, action) {
       return { ...state, people: state.people.filter((p) => p.id !== action.id) }
 
     case 'ADD_EXPENSE':
-      return {
-        ...state,
-        expenses: [
-          ...state.expenses,
-          {
-            id: newId('e'),
-            ...normalizeExpenseFields(action, state.people),
-            createdAt: Date.now(),
-          },
-        ],
-      }
+      return withExpenses(state, [
+        ...state.expenses,
+        {
+          id: newId('e'),
+          ...normalizeExpenseFields(action, state.people),
+          createdAt: Date.now(),
+        },
+      ])
 
     case 'UPDATE_EXPENSE':
-      return {
-        ...state,
-        expenses: state.expenses.map((e) =>
+      return withExpenses(
+        state,
+        state.expenses.map((e) =>
           e.id === action.id
             ? { ...e, ...normalizeExpenseFields(action, state.people) }
             : e,
         ),
-      }
+      )
 
     case 'REMOVE_EXPENSE':
-      return { ...state, expenses: state.expenses.filter((e) => e.id !== action.id) }
+      return withExpenses(
+        state,
+        state.expenses.filter((e) => e.id !== action.id),
+      )
+
+    case 'TOGGLE_SETTLEMENT_PAID': {
+      // Stamp/unstamp a single settlement tile. Display-only; balance math and
+      // the derived settlements are untouched.
+      const key = action.key
+      if (typeof key !== 'string' || !key) return state
+      const current = paidOf(state)
+      if (current.includes(key)) {
+        return { ...state, paidSettlements: current.filter((k) => k !== key) }
+      }
+      // Only stamp a key that maps to a live settlement, so the reducer (the
+      // validation boundary) never persists a stale or crafted key.
+      if (!liveSettlementKeys(state.people, state.expenses).has(key)) return state
+      return { ...state, paidSettlements: [...current, key] }
+    }
 
     case 'SET_TITLE':
       return { ...state, title: action.title }
@@ -235,11 +316,17 @@ export function reducer(state, action) {
 
     case 'CLEAR_ALL':
       // saveState removes the storage key when state is empty, so no marker is left.
-      return { people: [], expenses: [], title: '' }
+      return { people: [], expenses: [], title: '', paidSettlements: [] }
 
     default:
       return state
   }
+}
+
+// Reads a state's paid-settlement keys, tolerating older/partial states (and
+// test fixtures) that predate the field.
+function paidOf(state) {
+  return Array.isArray(state.paidSettlements) ? state.paidSettlements : []
 }
 
 // True if a person is referenced by any expense (payer or participant).

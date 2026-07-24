@@ -116,13 +116,16 @@ export function decodeSplit(encoded) {
         exp && typeof exp.a === 'number' && Number.isFinite(exp.a) ? exp.a : 0
       const payerIndex = exp && Number.isInteger(exp.p) ? exp.p : -1
       const paidById = validIndices.has(payerIndex) ? idByIndex[payerIndex] : ''
-      // Keep only valid, UNIQUE participant indices (preserving order). A
-      // crafted payload with duplicate indices would otherwise charge one
-      // person twice and break the split, so balances wouldn't reconcile.
+      // Keep only valid, UNIQUE participant indices. A crafted payload with
+      // duplicate indices would otherwise charge one person twice and break the
+      // split. Order them ascending (= people-array order) so this matches the
+      // store's own orderByPeople normalization: computeBalances now assigns the
+      // remainder cent by participant order, so the read-only shared view and a
+      // saved copy place it on the same person regardless of the wire order.
       const rawParticipants = exp && Array.isArray(exp.s) ? exp.s : []
       const seen = new Set()
       const participantIds = []
-      for (const idx of rawParticipants) {
+      for (const idx of [...rawParticipants].sort((a, b) => a - b)) {
         if (!validIndices.has(idx) || seen.has(idx)) continue
         seen.add(idx)
         participantIds.push(idByIndex[idx])

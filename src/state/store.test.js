@@ -141,12 +141,22 @@ describe('loadState sanitization', () => {
   beforeEach(() => localStorage.clear())
 
   it('returns the initial state when nothing is stored', () => {
-    expect(loadState()).toEqual({ people: [], expenses: [], title: '' })
+    expect(loadState()).toEqual({
+      people: [],
+      expenses: [],
+      title: '',
+      paidSettlements: [],
+    })
   })
 
   it('falls back to initial state on malformed JSON', () => {
     localStorage.setItem(STORAGE_KEY, '{not json')
-    expect(loadState()).toEqual({ people: [], expenses: [], title: '' })
+    expect(loadState()).toEqual({
+      people: [],
+      expenses: [],
+      title: '',
+      paidSettlements: [],
+    })
   })
 
   it('coerces a non-numeric amount to 0 instead of keeping it', () => {
@@ -208,5 +218,141 @@ describe('newId', () => {
   it('produces unique ids', () => {
     const ids = new Set(Array.from({ length: 500 }, () => newId('p')))
     expect(ids.size).toBe(500)
+  })
+})
+
+describe('participant order follows Members order', () => {
+  // Three people in a fixed order; balances are irrelevant to ordering.
+  function setup() {
+    let s = { people: [], expenses: [], title: '', paidSettlements: [] }
+    for (const name of ['A', 'B', 'C']) s = reducer(s, { type: 'ADD_PERSON', name })
+    return s
+  }
+
+  it('orders ADD_EXPENSE participants by Members order regardless of toggle order', () => {
+    const s = setup()
+    const [a, b, c] = s.people.map((p) => p.id)
+    const next = reducer(s, {
+      type: 'ADD_EXPENSE',
+      description: 'X',
+      amount: 30,
+      paidById: a,
+      // Ticked out of order: C, then A, then B.
+      participantIds: [c, a, b],
+    })
+    expect(next.expenses[0].participantIds).toEqual([a, b, c])
+  })
+
+  it('reorders participants on UPDATE_EXPENSE too', () => {
+    let s = setup()
+    const [a, b, c] = s.people.map((p) => p.id)
+    s = reducer(s, {
+      type: 'ADD_EXPENSE',
+      description: 'X',
+      amount: 30,
+      paidById: a,
+      participantIds: [a, b, c],
+    })
+    const id = s.expenses[0].id
+    s = reducer(s, {
+      type: 'UPDATE_EXPENSE',
+      id,
+      description: 'X',
+      amount: 30,
+      paidById: a,
+      participantIds: [c, b, a],
+    })
+    expect(s.expenses[0].participantIds).toEqual([a, b, c])
+  })
+
+  it('reorders persisted participants on load', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        people: [
+          { id: 'p1', name: 'A', colorIndex: 0 },
+          { id: 'p2', name: 'B', colorIndex: 1 },
+          { id: 'p3', name: 'C', colorIndex: 2 },
+        ],
+        expenses: [
+          {
+            id: 'e1',
+            description: 'X',
+            amount: 30,
+            paidById: 'p1',
+            participantIds: ['p3', 'p1', 'p2'],
+            createdAt: 1,
+          },
+        ],
+        title: '',
+      }),
+    )
+    const s = loadState()
+    expect(s.expenses[0].participantIds).toEqual(['p1', 'p2', 'p3'])
+  })
+})
+
+describe('TOGGLE_SETTLEMENT_PAID', () => {
+  // A owes B 30: A pays 0, B pays 60, both split 30 each -> settle B<-A 30.
+  function splitWithSettlement() {
+    let s = { people: [], expenses: [], title: '', paidSettlements: [] }
+    for (const name of ['A', 'B']) s = reducer(s, { type: 'ADD_PERSON', name })
+    const [a, b] = s.people.map((p) => p.id)
+    s = reducer(s, {
+      type: 'ADD_EXPENSE',
+      description: 'Dinner',
+      amount: 60,
+      paidById: b,
+      participantIds: [a, b],
+    })
+    return { s, a, b }
+  }
+
+  it('stamps a settlement, then un-stamps it on a second toggle', () => {
+    let { s, a, b } = splitWithSettlement()
+    const key = `${a}::${b}::3000` // the live A -> B 30 settlement
+    s = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key })
+    expect(s.paidSettlements).toContain(key)
+    s = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key })
+    expect(s.paidSettlements).not.toContain(key)
+  })
+
+  it('ignores a missing/empty key', () => {
+    const { s } = splitWithSettlement()
+    expect(reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key: '' })).toBe(s)
+    expect(reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID' })).toBe(s)
+  })
+
+  it('refuses to stamp a key that maps to no live settlement', () => {
+    const { s } = splitWithSettlement()
+    const next = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key: 'ghost::key::9999' })
+    expect(next).toBe(s)
+    expect(next.paidSettlements).toEqual([])
+  })
+
+  it('drops a stale paid key when balances change', () => {
+    let { s, a, b } = splitWithSettlement()
+    // Stamp the real current settlement key (B is owed 30 by A).
+    const key = `${a}::${b}::3000`
+    s = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key })
+    expect(s.paidSettlements).toEqual([key])
+    // Change the amount so the settlement (and its key) shifts.
+    s = reducer(s, {
+      type: 'UPDATE_EXPENSE',
+      id: s.expenses[0].id,
+      description: 'Dinner',
+      amount: 100,
+      paidById: b,
+      participantIds: [a, b],
+    })
+    expect(s.paidSettlements).toEqual([])
+  })
+
+  it('CLEAR_ALL wipes paid settlements', () => {
+    let { s, a, b } = splitWithSettlement()
+    s = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key: `${a}::${b}::3000` })
+    expect(s.paidSettlements).toHaveLength(1)
+    s = reducer(s, { type: 'CLEAR_ALL' })
+    expect(s.paidSettlements).toEqual([])
   })
 })

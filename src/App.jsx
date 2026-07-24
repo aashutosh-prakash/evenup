@@ -109,7 +109,7 @@ export default function App() {
           <ExpenseForm state={state} dispatch={dispatch} />
           <ExpenseList state={state} dispatch={dispatch} />
         </section>
-        <Summary state={state} />
+        <Summary state={state} dispatch={dispatch} />
       </main>
 
       <AppFooter />

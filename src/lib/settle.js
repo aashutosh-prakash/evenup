@@ -13,7 +13,7 @@ export function fromCents(cents) {
 // Returns a map of personId -> net balance (major units).
 // Positive = owed money; negative = owes money.
 // Works in cents; the leftover penny from an uneven split is assigned to
-// participants in ascending id order so balances always reconcile to 0.
+// participants in their listed (Members) order so balances always reconcile to 0.
 export function computeBalances(people, expenses) {
   const cents = {}
   for (const p of people) cents[p.id] = 0
@@ -31,8 +31,11 @@ export function computeBalances(people, expenses) {
     const abs = Math.abs(total)
     const base = Math.floor(abs / n)
     let remainder = abs - base * n
-    const ordered = [...participantIds].sort()
-    for (const pid of ordered) {
+    // Give the leftover cent to participants in their listed (Members) order —
+    // NOT sorted by id. Ids are random UUIDs regenerated on every shared-link
+    // decode, so sorting by id made the penny (and the settle-up list) shuffle
+    // on each refresh. Array order is stable across decodes.
+    for (const pid of participantIds) {
       let share = base
       if (remainder > 0) {
         share += 1
@@ -77,6 +80,14 @@ export function settle(balances) {
     if (d.cents === 0) di += 1
   }
   return txns
+}
+
+// Stable identity for a settlement transaction, used to remember which ones a
+// user has marked "paid". Keyed on the payer, payee, and cent amount so it
+// survives reloads (ids are real UUIDs locally) and auto-invalidates when the
+// amount changes — a settlement whose amount shifts gets a new key.
+export function settlementKey(txn) {
+  return `${txn.fromId}::${txn.toId}::${toCents(txn.amount)}`
 }
 
 // Total each person paid across all expenses. Returns personId -> amount.
