@@ -23,7 +23,11 @@ const NET_LABEL = { pos: 'is owed', neg: 'owes', zero: 'settled' }
 
 export default function Summary({ state, dispatch }) {
   const personOf = (id) => findPerson(state.people, id)
-  const paidSet = new Set(state.paidSettlements ?? [])
+  // Rebuild only when the stamped set changes (a toggle), not on every render.
+  const paidSet = useMemo(
+    () => new Set(state.paidSettlements ?? []),
+    [state.paidSettlements],
+  )
   const { paid, total, txns, balances } = useMemo(() => {
     const bal = computeBalances(state.people, state.expenses)
     return {
