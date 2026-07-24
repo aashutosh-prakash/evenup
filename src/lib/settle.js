@@ -31,8 +31,11 @@ export function computeBalances(people, expenses) {
     const abs = Math.abs(total)
     const base = Math.floor(abs / n)
     let remainder = abs - base * n
-    const ordered = [...participantIds].sort()
-    for (const pid of ordered) {
+    // Give the leftover cent to participants in their listed (Members) order —
+    // NOT sorted by id. Ids are random UUIDs regenerated on every shared-link
+    // decode, so sorting by id made the penny (and the settle-up list) shuffle
+    // on each refresh. Array order is stable across decodes.
+    for (const pid of participantIds) {
       let share = base
       if (remainder > 0) {
         share += 1
