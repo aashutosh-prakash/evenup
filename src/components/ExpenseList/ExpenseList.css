@@ -62,3 +62,8 @@
   color: #1e88e5;
   border-color: #c5dcf5;
 }
+.confirm-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--neg);
+}

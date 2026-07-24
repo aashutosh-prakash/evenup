@@ -7,6 +7,8 @@ import './ExpenseList.css'
 
 export default function ExpenseList({ state, dispatch }) {
   const [editingId, setEditingId] = useState(null)
+  // Which expense's Remove is awaiting confirmation (only one at a time).
+  const [confirmingId, setConfirmingId] = useState(null)
   const personOf = (id) => findPerson(state.people, id)
 
   return (
@@ -55,22 +57,48 @@ export default function ExpenseList({ state, dispatch }) {
                           ))}
                         </span>
                       </span>
-                      <span className="expense-actions">
-                        <button
-                          type="button"
-                          className="link-btn"
-                          onClick={() => setEditingId(exp.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="remove-btn"
-                          onClick={() => dispatch({ type: 'REMOVE_EXPENSE', id: exp.id })}
-                        >
-                          Remove
-                        </button>
-                      </span>
+                      {confirmingId === exp.id ? (
+                        <span className="expense-actions confirm-remove" role="group">
+                          <span className="confirm-text">Remove this?</span>
+                          <button
+                            type="button"
+                            className="remove-btn"
+                            onClick={() => {
+                              dispatch({ type: 'REMOVE_EXPENSE', id: exp.id })
+                              setConfirmingId(null)
+                            }}
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            type="button"
+                            className="link-btn"
+                            onClick={() => setConfirmingId(null)}
+                          >
+                            Cancel
+                          </button>
+                        </span>
+                      ) : (
+                        <span className="expense-actions">
+                          <button
+                            type="button"
+                            className="link-btn"
+                            onClick={() => {
+                              setConfirmingId(null)
+                              setEditingId(exp.id)
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="remove-btn"
+                            onClick={() => setConfirmingId(exp.id)}
+                          >
+                            Remove
+                          </button>
+                        </span>
+                      )}
                     </div>
                   </>
                 )}

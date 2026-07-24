@@ -63,7 +63,14 @@
   flex-direction: column;
   gap: 0.5rem;
 }
+.settlements li {
+  list-style: none;
+}
+/* The tile is a real <button> so tap-to-stamp is keyboard- and AT-accessible;
+   reset the button chrome and let it fill the row like the old pill. */
 .settle-row {
+  position: relative;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -72,6 +79,48 @@
   border: 1px solid #cde9d6;
   border-radius: 999px;
   font-size: 0.9rem;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    filter 0.15s ease,
+    opacity 0.15s ease;
+}
+.settle-row:hover {
+  background: #e9f4ee;
+}
+.settle-row:focus-visible {
+  outline: 2px solid #137333;
+  outline-offset: 2px;
+}
+/* Once paid, mute the transaction so the stamp reads as the headline. */
+.settle-row.is-paid {
+  opacity: 0.72;
+  filter: grayscale(0.35);
+}
+/* Red distressed rubber-stamp overlay, angled across the tile. */
+.paid-stamp {
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%) rotate(-11deg);
+  padding: 0.05rem 0.55rem;
+  color: #c62828;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 2.5px solid #c62828;
+  border-radius: 6px;
+  opacity: 0.85;
+  pointer-events: none;
+  /* Faint double-frame + slightly uneven ink, evoking a real stamp. */
+  box-shadow:
+    inset 0 0 0 1.5px #fff,
+    inset 0 0 0 3px rgba(198, 40, 40, 0.55);
+  text-shadow: 0 0 1px rgba(198, 40, 40, 0.3);
 }
 .settle-text {
   flex: 1;

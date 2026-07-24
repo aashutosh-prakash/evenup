@@ -79,6 +79,14 @@ export function settle(balances) {
   return txns
 }
 
+// Stable identity for a settlement transaction, used to remember which ones a
+// user has marked "paid". Keyed on the payer, payee, and cent amount so it
+// survives reloads (ids are real UUIDs locally) and auto-invalidates when the
+// amount changes — a settlement whose amount shifts gets a new key.
+export function settlementKey(txn) {
+  return `${txn.fromId}::${txn.toId}::${toCents(txn.amount)}`
+}
+
 // Total each person paid across all expenses. Returns personId -> amount.
 export function computePaidTotals(people, expenses) {
   const cents = {}

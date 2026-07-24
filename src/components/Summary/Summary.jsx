@@ -4,6 +4,7 @@ import {
   computePaidTotals,
   computeTotal,
   settle,
+  settlementKey,
   formatMoney,
   formatSigned,
 } from '../../lib/settle.js'
@@ -20,8 +21,9 @@ function netState(n) {
 }
 const NET_LABEL = { pos: 'is owed', neg: 'owes', zero: 'settled' }
 
-export default function Summary({ state }) {
+export default function Summary({ state, dispatch }) {
   const personOf = (id) => findPerson(state.people, id)
+  const paidSet = new Set(state.paidSettlements ?? [])
   const { paid, total, txns, balances } = useMemo(() => {
     const bal = computeBalances(state.people, state.expenses)
     return {
@@ -80,17 +82,34 @@ export default function Summary({ state }) {
             {txns.map((t, i) => {
               const from = personOf(t.fromId)
               const to = personOf(t.toId)
+              const key = settlementKey(t)
+              const paid = paidSet.has(key)
               return (
-                <li key={`${t.fromId}-${t.toId}-${i}`} className="settle-row">
-                  <Avatar person={from} size="sm" />
-                  <span className="settle-text">
-                    <strong>{from.name}</strong>
-                    <span className="settle-arrow" aria-label="pays">
-                      →
+                <li key={`${t.fromId}-${t.toId}-${i}`}>
+                  <button
+                    type="button"
+                    className={`settle-row${paid ? ' is-paid' : ''}`}
+                    aria-pressed={paid}
+                    aria-label={`${from.name} pays ${to.name} ${formatMoney(t.amount)}${
+                      paid ? ' — paid, tap to undo' : ' — tap to mark paid'
+                    }`}
+                    onClick={() => dispatch({ type: 'TOGGLE_SETTLEMENT_PAID', key })}
+                  >
+                    <Avatar person={from} size="sm" />
+                    <span className="settle-text">
+                      <strong>{from.name}</strong>
+                      <span className="settle-arrow" aria-hidden="true">
+                        →
+                      </span>
+                      <strong>{to.name}</strong>
                     </span>
-                    <strong>{to.name}</strong>
-                  </span>
-                  <span className="settle-amount">{formatMoney(t.amount)}</span>
+                    <span className="settle-amount">{formatMoney(t.amount)}</span>
+                    {paid && (
+                      <span className="paid-stamp" aria-hidden="true">
+                        Paid
+                      </span>
+                    )}
+                  </button>
                 </li>
               )
             })}

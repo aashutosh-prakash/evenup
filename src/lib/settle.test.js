@@ -4,10 +4,23 @@ import {
   fromCents,
   computeBalances,
   settle,
+  settlementKey,
   computePaidTotals,
   computeTotal,
   formatMoney,
 } from './settle.js'
+
+describe('settlementKey', () => {
+  it('encodes payer, payee and cent amount', () => {
+    expect(settlementKey({ fromId: 'a', toId: 'b', amount: 12.5 })).toBe('a::b::1250')
+  })
+
+  it('is stable for equal transactions and differs when the amount changes', () => {
+    const t = { fromId: 'a', toId: 'b', amount: 30 }
+    expect(settlementKey(t)).toBe(settlementKey({ ...t }))
+    expect(settlementKey(t)).not.toBe(settlementKey({ ...t, amount: 31 }))
+  })
+})
 
 describe('money helpers', () => {
   it('toCents rounds to nearest cent', () => {
