@@ -100,12 +100,13 @@
   opacity: 0.72;
   filter: grayscale(0.35);
 }
-/* Red distressed rubber-stamp overlay, angled across the tile. */
+/* Red distressed rubber-stamp overlay, angled across the tile. Centred over the
+   names rather than the right edge so it never occludes the amount. */
 .paid-stamp {
   position: absolute;
-  right: 0.7rem;
+  left: 50%;
   top: 50%;
-  transform: translateY(-50%) rotate(-11deg);
+  transform: translate(-50%, -50%) rotate(-11deg);
   padding: 0.05rem 0.55rem;
   color: #c62828;
   font-weight: 800;

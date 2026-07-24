@@ -24,7 +24,7 @@ const settledState = {
 
 describe('Summary', () => {
   it('shows guidance until there is an expense', () => {
-    render(<Summary state={{ people, expenses: [], title: '' }} />)
+    render(<Summary state={{ people, expenses: [], title: '' }} dispatch={() => {}} />)
     expect(screen.getByText(/add people and an expense/i)).toBeInTheDocument()
   })
 
@@ -42,7 +42,7 @@ describe('Summary', () => {
         },
       ],
     }
-    render(<Summary state={state} />)
+    render(<Summary state={state} dispatch={() => {}} />)
     expect(screen.getByText('Paid')).toBeInTheDocument()
     expect(screen.getByText('Total')).toBeInTheDocument()
     // Net badges: Alice is owed +50.00, Bob owes -50.00.

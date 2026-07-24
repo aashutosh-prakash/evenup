@@ -83,15 +83,15 @@ export default function Summary({ state, dispatch }) {
               const from = personOf(t.fromId)
               const to = personOf(t.toId)
               const key = settlementKey(t)
-              const paid = paidSet.has(key)
+              const isPaid = paidSet.has(key)
               return (
                 <li key={`${t.fromId}-${t.toId}-${i}`}>
                   <button
                     type="button"
-                    className={`settle-row${paid ? ' is-paid' : ''}`}
-                    aria-pressed={paid}
+                    className={`settle-row${isPaid ? ' is-paid' : ''}`}
+                    aria-pressed={isPaid}
                     aria-label={`${from.name} pays ${to.name} ${formatMoney(t.amount)}${
-                      paid ? ' — paid, tap to undo' : ' — tap to mark paid'
+                      isPaid ? ' — paid, tap to undo' : ' — tap to mark paid'
                     }`}
                     onClick={() => dispatch({ type: 'TOGGLE_SETTLEMENT_PAID', key })}
                   >
@@ -104,7 +104,7 @@ export default function Summary({ state, dispatch }) {
                       <strong>{to.name}</strong>
                     </span>
                     <span className="settle-amount">{formatMoney(t.amount)}</span>
-                    {paid && (
+                    {isPaid && (
                       <span className="paid-stamp" aria-hidden="true">
                         Paid
                       </span>

@@ -309,8 +309,8 @@ describe('TOGGLE_SETTLEMENT_PAID', () => {
   }
 
   it('stamps a settlement, then un-stamps it on a second toggle', () => {
-    let { s } = splitWithSettlement()
-    const key = 'k1'
+    let { s, a, b } = splitWithSettlement()
+    const key = `${a}::${b}::3000` // the live A -> B 30 settlement
     s = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key })
     expect(s.paidSettlements).toContain(key)
     s = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key })
@@ -321,6 +321,13 @@ describe('TOGGLE_SETTLEMENT_PAID', () => {
     const { s } = splitWithSettlement()
     expect(reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key: '' })).toBe(s)
     expect(reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID' })).toBe(s)
+  })
+
+  it('refuses to stamp a key that maps to no live settlement', () => {
+    const { s } = splitWithSettlement()
+    const next = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key: 'ghost::key::9999' })
+    expect(next).toBe(s)
+    expect(next.paidSettlements).toEqual([])
   })
 
   it('drops a stale paid key when balances change', () => {
@@ -342,8 +349,9 @@ describe('TOGGLE_SETTLEMENT_PAID', () => {
   })
 
   it('CLEAR_ALL wipes paid settlements', () => {
-    let { s } = splitWithSettlement()
-    s = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key: 'x' })
+    let { s, a, b } = splitWithSettlement()
+    s = reducer(s, { type: 'TOGGLE_SETTLEMENT_PAID', key: `${a}::${b}::3000` })
+    expect(s.paidSettlements).toHaveLength(1)
     s = reducer(s, { type: 'CLEAR_ALL' })
     expect(s.paidSettlements).toEqual([])
   })

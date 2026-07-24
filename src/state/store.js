@@ -112,10 +112,24 @@ function liveSettlementKeys(people, expenses) {
 }
 
 // Drops "paid" keys that no longer correspond to a current settlement, so a
-// stamp can't linger (or spuriously reappear) after balances change.
+// stamp can't linger (or spuriously reappear) after balances change. Skips the
+// balance/settle recompute entirely when nothing is stamped — the common case
+// for anyone who never taps a Paid stamp.
 function prunePaid(paidSettlements, people, expenses) {
+  if (paidSettlements.length === 0) return paidSettlements
   const live = liveSettlementKeys(people, expenses)
   return paidSettlements.filter((k) => live.has(k))
+}
+
+// Applies an expenses change and re-prunes stale paid stamps in one place, so
+// every expense-mutating action keeps paidSettlements consistent (and a future
+// action that forgets to prune can't reintroduce stale stamps).
+function withExpenses(state, expenses) {
+  return {
+    ...state,
+    expenses,
+    paidSettlements: prunePaid(paidOf(state), state.people, expenses),
+  }
 }
 
 // Coerce a single persisted person into a well-formed record, or null if it
@@ -176,7 +190,11 @@ export function loadState() {
 // "this app was used" marker behind.
 export function saveState(state) {
   try {
-    const empty = state.people.length === 0 && state.expenses.length === 0 && !state.title
+    const empty =
+      state.people.length === 0 &&
+      state.expenses.length === 0 &&
+      !state.title &&
+      paidOf(state).length === 0
     if (empty) {
       localStorage.removeItem(STORAGE_KEY)
     } else {
@@ -242,43 +260,31 @@ export function reducer(state, action) {
       if (personInUse(state, action.id)) return state
       return { ...state, people: state.people.filter((p) => p.id !== action.id) }
 
-    case 'ADD_EXPENSE': {
-      const expenses = [
+    case 'ADD_EXPENSE':
+      return withExpenses(state, [
         ...state.expenses,
         {
           id: newId('e'),
           ...normalizeExpenseFields(action, state.people),
           createdAt: Date.now(),
         },
-      ]
-      return {
-        ...state,
-        expenses,
-        paidSettlements: prunePaid(paidOf(state), state.people, expenses),
-      }
-    }
+      ])
 
-    case 'UPDATE_EXPENSE': {
-      const expenses = state.expenses.map((e) =>
-        e.id === action.id
-          ? { ...e, ...normalizeExpenseFields(action, state.people) }
-          : e,
+    case 'UPDATE_EXPENSE':
+      return withExpenses(
+        state,
+        state.expenses.map((e) =>
+          e.id === action.id
+            ? { ...e, ...normalizeExpenseFields(action, state.people) }
+            : e,
+        ),
       )
-      return {
-        ...state,
-        expenses,
-        paidSettlements: prunePaid(paidOf(state), state.people, expenses),
-      }
-    }
 
-    case 'REMOVE_EXPENSE': {
-      const expenses = state.expenses.filter((e) => e.id !== action.id)
-      return {
-        ...state,
-        expenses,
-        paidSettlements: prunePaid(paidOf(state), state.people, expenses),
-      }
-    }
+    case 'REMOVE_EXPENSE':
+      return withExpenses(
+        state,
+        state.expenses.filter((e) => e.id !== action.id),
+      )
 
     case 'TOGGLE_SETTLEMENT_PAID': {
       // Stamp/unstamp a single settlement tile. Display-only; balance math and
@@ -286,10 +292,13 @@ export function reducer(state, action) {
       const key = action.key
       if (typeof key !== 'string' || !key) return state
       const current = paidOf(state)
-      const paidSettlements = current.includes(key)
-        ? current.filter((k) => k !== key)
-        : [...current, key]
-      return { ...state, paidSettlements }
+      if (current.includes(key)) {
+        return { ...state, paidSettlements: current.filter((k) => k !== key) }
+      }
+      // Only stamp a key that maps to a live settlement, so the reducer (the
+      // validation boundary) never persists a stale or crafted key.
+      if (!liveSettlementKeys(state.people, state.expenses).has(key)) return state
+      return { ...state, paidSettlements: [...current, key] }
     }
 
     case 'SET_TITLE':
