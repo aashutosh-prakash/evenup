@@ -69,10 +69,16 @@
    clicked, so it keeps the row's width and height and the list never shifts. */
 .expense-confirm {
   justify-content: space-between;
+  /* Keep everything on one line — inherited .expense-meta wraps, and a long
+     description would otherwise push the row taller than the avatar row. */
+  flex-wrap: nowrap;
 }
 .expense-confirm-text {
   min-width: 0;
-  overflow-wrap: anywhere;
+  /* Clamp a long description to one line (…) so the row height stays fixed. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: #333;
 }
 .expense-confirm-actions {

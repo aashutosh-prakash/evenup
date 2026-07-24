@@ -40,7 +40,7 @@ describe('ExpenseList', () => {
     render(<ExpenseList state={state} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
     expect(dispatch).not.toHaveBeenCalled()
-    const confirm = screen.getByRole('group', { name: 'Confirm removal' })
+    const confirm = screen.getByRole('alertdialog', { name: 'Confirm removal' })
     // Prompt names the expense being removed.
     expect(within(confirm).getByText('Hotel')).toBeInTheDocument()
   })
@@ -50,7 +50,7 @@ describe('ExpenseList', () => {
     render(<ExpenseList state={state} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
     // The confirm prompt's own Remove button (within the confirm group).
-    const confirm = screen.getByRole('group', { name: 'Confirm removal' })
+    const confirm = screen.getByRole('alertdialog', { name: 'Confirm removal' })
     fireEvent.click(within(confirm).getByRole('button', { name: 'Remove' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'REMOVE_EXPENSE', id: 'e1' })
   })
@@ -65,7 +65,7 @@ describe('ExpenseList', () => {
     expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument()
     expect(
-      screen.queryByRole('group', { name: 'Confirm removal' }),
+      screen.queryByRole('alertdialog', { name: 'Confirm removal' }),
     ).not.toBeInTheDocument()
   })
 })

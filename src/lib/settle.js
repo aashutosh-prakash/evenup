@@ -13,7 +13,7 @@ export function fromCents(cents) {
 // Returns a map of personId -> net balance (major units).
 // Positive = owed money; negative = owes money.
 // Works in cents; the leftover penny from an uneven split is assigned to
-// participants in ascending id order so balances always reconcile to 0.
+// participants in their listed (Members) order so balances always reconcile to 0.
 export function computeBalances(people, expenses) {
   const cents = {}
   for (const p of people) cents[p.id] = 0

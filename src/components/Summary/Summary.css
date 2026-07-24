@@ -95,8 +95,11 @@
   outline: 2px solid #137333;
   outline-offset: 2px;
 }
-/* Once paid, mute the transaction so the stamp reads as the headline. */
-.settle-row.is-paid {
+/* Once paid, mute the transaction so the stamp reads as the headline — but mute
+   only the row's content, NOT the stamp. Muting the whole row compounded with
+   the stamp's own opacity and pushed the only paid indicator under WCAG's 3:1
+   contrast floor. */
+.settle-row.is-paid > :not(.paid-stamp) {
   opacity: 0.72;
   filter: grayscale(0.35);
 }
@@ -115,7 +118,7 @@
   text-transform: uppercase;
   border: 2.5px solid #c62828;
   border-radius: 6px;
-  opacity: 0.85;
+  opacity: 0.9;
   pointer-events: none;
   /* Faint double-frame + slightly uneven ink, evoking a real stamp. */
   box-shadow:

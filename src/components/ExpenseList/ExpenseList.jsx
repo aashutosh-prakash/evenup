@@ -43,7 +43,7 @@ export default function ExpenseList({ state, dispatch }) {
                       // the same width and height, so the list below never shifts.
                       <div
                         className="expense-meta expense-confirm"
-                        role="group"
+                        role="alertdialog"
                         aria-label="Confirm removal"
                       >
                         <span className="expense-confirm-text">
@@ -53,6 +53,10 @@ export default function ExpenseList({ state, dispatch }) {
                           <button
                             type="button"
                             className="link-btn"
+                            // Clicking Remove unmounts its button; move focus to
+                            // the safe (Cancel) action so keyboard/AT users land
+                            // inside the prompt instead of at document.body.
+                            autoFocus
                             onClick={() => setConfirmingId(null)}
                           >
                             Cancel

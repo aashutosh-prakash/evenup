@@ -22,7 +22,9 @@ export const initialState = {
   expenses: [],
   title: '',
   // Keys (fromId::toId::cents) of settlements the user has stamped "paid".
-  // Purely a display marker — never affects balance math.
+  // Purely a local display marker — never affects balance math, and
+  // deliberately NOT shared: encodeSplit and buildSummaryText omit it, so a
+  // recipient always sees the canonical outstanding split.
   paidSettlements: [],
 }
 
@@ -100,7 +102,9 @@ function sanitizeState(parsed) {
 
 // Orders participant ids to match the people array, so an expense's "split
 // among" always renders in Members order regardless of the order boxes were
-// ticked. Balance math is unaffected — computeBalances sorts ids itself.
+// ticked. NOTE: this is load-bearing for money math too — computeBalances
+// assigns the remainder cent in participant order (it no longer sorts by id),
+// so this ordering is what keeps the penny placement deterministic.
 function orderByPeople(ids, peopleIds) {
   const rank = new Map(peopleIds.map((id, i) => [id, i]))
   return [...ids].sort((a, b) => (rank.get(a) ?? 0) - (rank.get(b) ?? 0))
