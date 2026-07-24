@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import ExpenseList from './ExpenseList.jsx'
 
 const state = {
@@ -40,14 +40,18 @@ describe('ExpenseList', () => {
     render(<ExpenseList state={state} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
     expect(dispatch).not.toHaveBeenCalled()
-    expect(screen.getByText('Remove this?')).toBeInTheDocument()
+    const confirm = screen.getByRole('group', { name: 'Confirm removal' })
+    // Prompt names the expense being removed.
+    expect(within(confirm).getByText('Hotel')).toBeInTheDocument()
   })
 
-  it('dispatches REMOVE_EXPENSE only after Confirm', () => {
+  it('dispatches REMOVE_EXPENSE only after confirming', () => {
     const dispatch = vi.fn()
     render(<ExpenseList state={state} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }))
+    // The confirm prompt's own Remove button (within the confirm group).
+    const confirm = screen.getByRole('group', { name: 'Confirm removal' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Remove' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'REMOVE_EXPENSE', id: 'e1' })
   })
 
@@ -57,8 +61,11 @@ describe('ExpenseList', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }))
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(dispatch).not.toHaveBeenCalled()
-    // Back to the default actions.
+    // Back to the default row actions.
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument()
-    expect(screen.queryByText('Remove this?')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('group', { name: 'Confirm removal' }),
+    ).not.toBeInTheDocument()
   })
 })
