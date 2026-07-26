@@ -11,6 +11,10 @@
 // so a share-link visit is reported under its own synthetic path instead. That's
 // what makes "how many people opened a shared split" answerable from the Pages
 // breakdown.
+//
+// Because this is a leak guard, it FAILS CLOSED: any url it can't fully parse
+// and rewrite is refused, and the caller drops the event. Losing one datapoint
+// is cheap; leaking a split is not.
 
 import { readShareParam } from './share-link.js'
 
@@ -24,31 +28,36 @@ export const SHARED_PATH = '/shared'
 // links are breaking in transit.
 export const SHARED_BROKEN_PATH = '/shared-broken'
 
-// Decides which page a visit should be reported as. `decoded` is whether the
-// app actually resolved the link into a viewable split (i.e. readSharedFromHash
-// returned non-null) — passing the real render outcome in, rather than
-// re-deriving it, keeps this from drifting away from decodeSplit's rules.
-// Returns null for an ordinary visit that carried no share link.
+// Decides which page a visit should be reported as, from the fragment of the
+// url being reported. `decoded` is whether the app actually resolved the current
+// link into a viewable split (i.e. readSharedFromHash returned non-null) —
+// passing the real render outcome in, rather than re-deriving it, keeps this from
+// drifting away from decodeSplit's rules. Returns null when the fragment carries
+// no share payload, meaning "report this url's own path".
 export function shareAnalyticsPath(hash, decoded) {
   if (readShareParam(hash) === null) return null
   return decoded ? SHARED_PATH : SHARED_BROKEN_PATH
 }
 
-// Returns the URL with any fragment removed, its path replaced by `sharePath`
-// when one is given. Non-string input passes through untouched.
-export function sanitizeAnalyticsUrl(url, sharePath = null) {
-  if (typeof url !== 'string' || !url) return url
+// Returns the url with its fragment removed, and its path replaced by a share
+// label when THIS url's fragment carries a share payload. Returns null when the
+// url can't be handled, so the caller can drop the event rather than send
+// something half-sanitized.
+export function sanitizeAnalyticsUrl(url, decoded = false) {
+  if (typeof url !== 'string' || !url) return null
 
   let parsed
   try {
     parsed = new URL(url)
   } catch {
-    // Not absolute (shouldn't happen via beforeSend, but don't leak if it does):
-    // chop the fragment textually and give up on the path rewrite.
-    const hashIndex = url.indexOf('#')
-    return hashIndex === -1 ? url : url.slice(0, hashIndex)
+    // Can't reason about it, so don't try to salvage it.
+    return null
   }
 
+  // Derived per url, NOT captured once at setup: one hook instance can see
+  // several events, and a share label must never be smeared onto an event whose
+  // own url carries no payload.
+  const sharePath = shareAnalyticsPath(parsed.hash, decoded)
   parsed.hash = ''
   if (sharePath) parsed.pathname = sharePath
   return parsed.toString()
@@ -56,11 +65,14 @@ export function sanitizeAnalyticsUrl(url, sharePath = null) {
 
 // Builds the beforeSend hook for <Analytics />. Vercel runs every event through
 // it in the browser before the event leaves, so this is the last place the
-// fragment can be removed. Returns a copy with the url sanitized (returning null
-// instead would drop the event entirely).
-export function createBeforeSend(sharePath) {
+// fragment can be removed. `decoded` is the current share-state outcome; the
+// share payload's presence is read from each event's own url. Returns null to
+// drop the event whenever the url can't be safely rewritten.
+export function createBeforeSend(decoded) {
   return function beforeSend(event) {
-    if (!event) return event
-    return { ...event, url: sanitizeAnalyticsUrl(event.url, sharePath) }
+    if (!event) return null
+    const url = sanitizeAnalyticsUrl(event.url, decoded)
+    if (url === null) return null
+    return { ...event, url }
   }
 }

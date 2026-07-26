@@ -9,7 +9,7 @@ import {
 describe('sanitizeAnalyticsUrl', () => {
   it('never leaks the encoded split out of a share-link URL', () => {
     const payload = 'NoIgxgFglgNhIC4QCEwEMoBMD2BXATgKZ4A2A5gK4B2ArgC4gA0IANCAKwAcAjA'
-    const result = sanitizeAnalyticsUrl(`https://evenkar.vercel.app/#s=${payload}`)
+    const result = sanitizeAnalyticsUrl(`https://evenkar.vercel.app/#s=${payload}`, true)
 
     expect(result).not.toContain(payload)
     expect(result).not.toContain('#')
@@ -21,41 +21,46 @@ describe('sanitizeAnalyticsUrl', () => {
     )
   })
 
-  it('drops the fragment when no share path is given', () => {
+  it('drops a fragment that is not a share link', () => {
     expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#settings')).toBe(
       'https://evenkar.vercel.app/',
     )
   })
 
-  it('rewrites the path to the share path it is given', () => {
-    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#s=abc', SHARED_PATH)).toBe(
+  it('labels a decoded share link as the shared page', () => {
+    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#s=abc', true)).toBe(
       `https://evenkar.vercel.app${SHARED_PATH}`,
     )
   })
 
-  it('can report a broken share link as its own path', () => {
-    expect(
-      sanitizeAnalyticsUrl('https://evenkar.vercel.app/#s=junk', SHARED_BROKEN_PATH),
-    ).toBe(`https://evenkar.vercel.app${SHARED_BROKEN_PATH}`)
+  it('labels an undecodable share link as broken', () => {
+    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#s=junk', false)).toBe(
+      `https://evenkar.vercel.app${SHARED_BROKEN_PATH}`,
+    )
   })
 
   it('preserves the query string while dropping the fragment', () => {
-    expect(
-      sanitizeAnalyticsUrl('https://evenkar.vercel.app/?ref=x#s=abc', SHARED_PATH),
-    ).toBe(`https://evenkar.vercel.app${SHARED_PATH}?ref=x`)
+    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/?ref=x#s=abc', true)).toBe(
+      `https://evenkar.vercel.app${SHARED_PATH}?ref=x`,
+    )
   })
 
-  it('strips a fragment from a non-absolute URL', () => {
-    expect(sanitizeAnalyticsUrl('/#s=abc', SHARED_PATH)).toBe('/')
+  // Fail closed: this guard exists to keep the split out of the request. Anything
+  // it can't fully reason about is refused rather than best-effort sanitized.
+  it('refuses a non-string url instead of passing it through', () => {
+    expect(sanitizeAnalyticsUrl(undefined)).toBe(null)
+    expect(sanitizeAnalyticsUrl(123)).toBe(null)
+    expect(sanitizeAnalyticsUrl('')).toBe(null)
   })
 
-  it('passes through a non-string url unchanged', () => {
-    expect(sanitizeAnalyticsUrl(undefined)).toBe(undefined)
+  it('refuses a url it cannot parse rather than partially rewriting it', () => {
+    expect(sanitizeAnalyticsUrl('/#s=abc', true)).toBe(null)
+    expect(sanitizeAnalyticsUrl('not a url at all', true)).toBe(null)
   })
 })
 
 describe('shareAnalyticsPath', () => {
-  it('labels a share link that rendered as the shared page', () => {
+  it('labels a share link that decoded as the shared page', () => {
     expect(shareAnalyticsPath('#s=abc', true)).toBe(SHARED_PATH)
   })
 
@@ -69,7 +74,6 @@ describe('shareAnalyticsPath', () => {
   })
 
   it('does not label an empty s= as a share link at all', () => {
-    // Nothing was actually shared, so this is neither a view nor a broken link.
     expect(shareAnalyticsPath('#s=', false)).toBe(null)
   })
 
@@ -79,22 +83,33 @@ describe('shareAnalyticsPath', () => {
 })
 
 describe('createBeforeSend', () => {
-  it('sanitizes the url of an outgoing event', () => {
-    const beforeSend = createBeforeSend(SHARED_PATH)
-    const event = { type: 'pageview', url: 'https://evenkar.vercel.app/#s=abc' }
+  it('labels each event from its OWN url, not from one captured at setup', () => {
+    // The hook is built once per share-state transition but may see several
+    // events. A share label must never be smeared onto an event whose url
+    // carries no share payload.
+    const beforeSend = createBeforeSend(true)
 
-    expect(beforeSend(event).url).toBe(`https://evenkar.vercel.app${SHARED_PATH}`)
+    expect(beforeSend({ url: 'https://evenkar.vercel.app/#s=abc' }).url).toBe(
+      `https://evenkar.vercel.app${SHARED_PATH}`,
+    )
+    expect(beforeSend({ url: 'https://evenkar.vercel.app/' }).url).toBe(
+      'https://evenkar.vercel.app/',
+    )
+    expect(beforeSend({ url: 'https://evenkar.vercel.app/?a=1' }).url).toBe(
+      'https://evenkar.vercel.app/?a=1',
+    )
   })
 
-  it('reports a broken share link under the broken path', () => {
-    const beforeSend = createBeforeSend(SHARED_BROKEN_PATH)
-    const event = { type: 'pageview', url: 'https://evenkar.vercel.app/#s=junk' }
+  it('carries the decode outcome into the label', () => {
+    const broken = createBeforeSend(false)
 
-    expect(beforeSend(event).url).toBe(`https://evenkar.vercel.app${SHARED_BROKEN_PATH}`)
+    expect(broken({ url: 'https://evenkar.vercel.app/#s=junk' }).url).toBe(
+      `https://evenkar.vercel.app${SHARED_BROKEN_PATH}`,
+    )
   })
 
   it('keeps the event fields it does not own', () => {
-    const beforeSend = createBeforeSend(null)
+    const beforeSend = createBeforeSend(false)
     const event = { type: 'pageview', url: 'https://evenkar.vercel.app/', extra: 1 }
 
     expect(beforeSend(event)).toEqual({
@@ -105,14 +120,21 @@ describe('createBeforeSend', () => {
   })
 
   it('does not mutate the event it was given', () => {
-    const beforeSend = createBeforeSend(SHARED_PATH)
+    const beforeSend = createBeforeSend(true)
     const event = { type: 'pageview', url: 'https://evenkar.vercel.app/#s=abc' }
     beforeSend(event)
 
     expect(event.url).toBe('https://evenkar.vercel.app/#s=abc')
   })
 
-  it('tolerates a missing event', () => {
-    expect(createBeforeSend(null)(null)).toBe(null)
+  it('drops an event whose url could not be sanitized', () => {
+    const beforeSend = createBeforeSend(true)
+
+    expect(beforeSend({ type: 'pageview', url: '/#s=abc' })).toBe(null)
+    expect(beforeSend({ type: 'pageview' })).toBe(null)
+  })
+
+  it('drops a missing event', () => {
+    expect(createBeforeSend(false)(null)).toBe(null)
   })
 })

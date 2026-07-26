@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { reducer, loadState, saveState } from './state/store.js'
 import { MIN_PEOPLE } from './lib/expense.js'
 import { requestPersistentStorage } from './lib/platform.js'
-import { createBeforeSend, shareAnalyticsPath } from './lib/analytics.js'
+import { createBeforeSend } from './lib/analytics.js'
 import { readSharedFromHash } from './lib/share-link.js'
 import Logo from './components/Logo/Logo.jsx'
 import PeoplePanel from './components/PeoplePanel/PeoplePanel.jsx'
@@ -64,14 +64,21 @@ export default function App() {
     requestPersistentStorage()
   }, [])
 
-  // Label this visit for analytics off the REAL outcome: `shared` is non-null
-  // only when the link decoded into a viewable split, so a link that arrived
-  // truncated or corrupt is counted as broken rather than as reach. Recomputed
-  // whenever `shared` flips (opening a link, or exiting one).
-  const analyticsBeforeSend = useMemo(
-    () => createBeforeSend(shareAnalyticsPath(window.location.hash, Boolean(shared))),
-    [shared],
-  )
+  // Label share-link visits off the REAL outcome: `shared` is non-null only when
+  // the link decoded into a viewable split, so one that arrived truncated or
+  // corrupt is counted as broken rather than as reach. Only the outcome is passed
+  // in — whether a given event's url actually carries a payload is read from that
+  // url inside the hook, so nothing here goes stale against the address bar.
+  const analyticsBeforeSend = useMemo(() => createBeforeSend(Boolean(shared)), [shared])
+
+  // @vercel/analytics picks its script by NODE_ENV: outside a production build it
+  // injects va.vercel-scripts.com/v1/script.debug.js — an external request this
+  // app otherwise never makes, and one that any future test rendering <App />
+  // would fire in CI. Production loads the same-origin /_vercel/insights/ route
+  // instead, so only mount it there.
+  const analytics = import.meta.env.PROD ? (
+    <Analytics beforeSend={analyticsBeforeSend} />
+  ) : null
 
   // Dim the expenses column during onboarding — before there are enough people
   // AND before any expense exists. Once an expense is entered it stays fully
@@ -87,7 +94,7 @@ export default function App() {
     return (
       <>
         <SharedView split={shared} onSave={saveSharedCopy} onExit={exitShared} />
-        <Analytics beforeSend={analyticsBeforeSend} />
+        {analytics}
       </>
     )
   }
@@ -133,7 +140,7 @@ export default function App() {
 
       <AppFooter />
       <PWAUpdater />
-      <Analytics beforeSend={analyticsBeforeSend} />
+      {analytics}
     </div>
   )
 }
