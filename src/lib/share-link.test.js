@@ -5,6 +5,7 @@ import {
   decodeSplit,
   buildShareUrl,
   composeShareUrl,
+  readShareParam,
   readSharedFromHash,
   shareLink,
   MAX_URL_LENGTH,
@@ -296,5 +297,41 @@ describe('readSharedFromHash', () => {
     expect(readSharedFromHash('')).toBeNull()
     expect(readSharedFromHash('#')).toBeNull()
     expect(readSharedFromHash('#other=1')).toBeNull()
+  })
+})
+
+describe('readShareParam', () => {
+  it('extracts the raw s value without decoding it', () => {
+    expect(readShareParam('#s=abc123')).toBe('abc123')
+  })
+
+  it('finds the s param when it is not first', () => {
+    expect(readShareParam('#x=1&s=abc')).toBe('abc')
+  })
+
+  it('returns the value even when it cannot be decoded', () => {
+    // The point of this helper: presence without validity, so callers can tell
+    // "a share link was opened" apart from "it decoded".
+    expect(readShareParam('#s=not-a-real-payload')).toBe('not-a-real-payload')
+    expect(readSharedFromHash('#s=not-a-real-payload')).toBeNull()
+  })
+
+  it('returns null when there is no s param', () => {
+    expect(readShareParam('')).toBeNull()
+    expect(readShareParam('#')).toBeNull()
+    expect(readShareParam('#other=1')).toBeNull()
+    expect(readShareParam('#xs=abc')).toBeNull()
+  })
+
+  it('returns null for an empty s param', () => {
+    expect(readShareParam('#s=')).toBeNull()
+  })
+
+  it('returns null for an implausibly long value', () => {
+    expect(readShareParam(`#s=${'a'.repeat(MAX_URL_LENGTH + 1)}`)).toBeNull()
+  })
+
+  it('works on a hash with no leading #', () => {
+    expect(readShareParam('s=abc')).toBe('abc')
   })
 })

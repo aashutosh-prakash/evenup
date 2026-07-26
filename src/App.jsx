@@ -1,7 +1,9 @@
-import { useReducer, useEffect, useState } from 'react'
+import { useReducer, useEffect, useMemo, useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import { reducer, loadState, saveState } from './state/store.js'
 import { MIN_PEOPLE } from './lib/expense.js'
 import { requestPersistentStorage } from './lib/platform.js'
+import { createBeforeSend } from './lib/analytics.js'
 import { readSharedFromHash } from './lib/share-link.js'
 import Logo from './components/Logo/Logo.jsx'
 import PeoplePanel from './components/PeoplePanel/PeoplePanel.jsx'
@@ -62,6 +64,24 @@ export default function App() {
     requestPersistentStorage()
   }, [])
 
+  // Label share-link visits off the REAL outcome: `shared` is non-null only when
+  // the link decoded into a viewable split, so one that arrived truncated or
+  // corrupt is counted as broken rather than as reach. Only the outcome is passed
+  // in — whether a given event's url actually carries a payload is read from that
+  // url inside the hook, so nothing here goes stale against the address bar.
+  const analyticsBeforeSend = useMemo(() => createBeforeSend(Boolean(shared)), [shared])
+
+  // Not mounted under Vitest (MODE === 'test'): @vercel/analytics picks its script
+  // by NODE_ENV, so a test rendering <App /> would fire a real request to
+  // va.vercel-scripts.com from jsdom in CI. It IS mounted in dev on purpose —
+  // that debug script logs each event's final url, which is the only local way to
+  // confirm the #s= payload never leaves (see lib/analytics.js). Production loads
+  // the same-origin /_vercel/insights/ route.
+  const analytics =
+    import.meta.env.MODE === 'test' ? null : (
+      <Analytics beforeSend={analyticsBeforeSend} />
+    )
+
   // Dim the expenses column during onboarding — before there are enough people
   // AND before any expense exists. Once an expense is entered it stays fully
   // visible/editable even if people later drop below the minimum.
@@ -70,7 +90,15 @@ export default function App() {
   // A share link takes over the whole screen with a read-only view. Placed
   // after all hooks so hook order stays stable across renders.
   if (shared) {
-    return <SharedView split={shared} onSave={saveSharedCopy} onExit={exitShared} />
+    // Analytics renders here too, so a share-link open is counted as its own
+    // page and we can see how many people a shared split reaches. beforeSend
+    // strips the #s= payload before anything is sent — see lib/analytics.js.
+    return (
+      <>
+        <SharedView split={shared} onSave={saveSharedCopy} onExit={exitShared} />
+        {analytics}
+      </>
+    )
   }
 
   return (
@@ -114,6 +142,7 @@ export default function App() {
 
       <AppFooter />
       <PWAUpdater />
+      {analytics}
     </div>
   )
 }
