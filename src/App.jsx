@@ -71,14 +71,16 @@ export default function App() {
   // url inside the hook, so nothing here goes stale against the address bar.
   const analyticsBeforeSend = useMemo(() => createBeforeSend(Boolean(shared)), [shared])
 
-  // @vercel/analytics picks its script by NODE_ENV: outside a production build it
-  // injects va.vercel-scripts.com/v1/script.debug.js — an external request this
-  // app otherwise never makes, and one that any future test rendering <App />
-  // would fire in CI. Production loads the same-origin /_vercel/insights/ route
-  // instead, so only mount it there.
-  const analytics = import.meta.env.PROD ? (
-    <Analytics beforeSend={analyticsBeforeSend} />
-  ) : null
+  // Not mounted under Vitest (MODE === 'test'): @vercel/analytics picks its script
+  // by NODE_ENV, so a test rendering <App /> would fire a real request to
+  // va.vercel-scripts.com from jsdom in CI. It IS mounted in dev on purpose —
+  // that debug script logs each event's final url, which is the only local way to
+  // confirm the #s= payload never leaves (see lib/analytics.js). Production loads
+  // the same-origin /_vercel/insights/ route.
+  const analytics =
+    import.meta.env.MODE === 'test' ? null : (
+      <Analytics beforeSend={analyticsBeforeSend} />
+    )
 
   // Dim the expenses column during onboarding — before there are enough people
   // AND before any expense exists. Once an expense is entered it stays fully
