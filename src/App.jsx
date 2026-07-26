@@ -1,7 +1,9 @@
 import { useReducer, useEffect, useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import { reducer, loadState, saveState } from './state/store.js'
 import { MIN_PEOPLE } from './lib/expense.js'
 import { requestPersistentStorage } from './lib/platform.js'
+import { beforeSend } from './lib/analytics.js'
 import { readSharedFromHash } from './lib/share-link.js'
 import Logo from './components/Logo/Logo.jsx'
 import PeoplePanel from './components/PeoplePanel/PeoplePanel.jsx'
@@ -70,7 +72,15 @@ export default function App() {
   // A share link takes over the whole screen with a read-only view. Placed
   // after all hooks so hook order stays stable across renders.
   if (shared) {
-    return <SharedView split={shared} onSave={saveSharedCopy} onExit={exitShared} />
+    // Analytics renders here too: share-link opens are counted as their own
+    // page (SHARED_PATH) so we can see how many people a shared split reaches.
+    // beforeSend strips the #s= payload first — see lib/analytics.js.
+    return (
+      <>
+        <SharedView split={shared} onSave={saveSharedCopy} onExit={exitShared} />
+        <Analytics beforeSend={beforeSend} />
+      </>
+    )
   }
 
   return (
@@ -114,6 +124,7 @@ export default function App() {
 
       <AppFooter />
       <PWAUpdater />
+      <Analytics beforeSend={beforeSend} />
     </div>
   )
 }
