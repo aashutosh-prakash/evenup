@@ -1,4 +1,10 @@
-import { SHARED_PATH, beforeSend, sanitizeAnalyticsUrl } from './analytics.js'
+import {
+  SHARED_BROKEN_PATH,
+  SHARED_PATH,
+  createBeforeSend,
+  sanitizeAnalyticsUrl,
+  shareAnalyticsPath,
+} from './analytics.js'
 
 describe('sanitizeAnalyticsUrl', () => {
   it('never leaks the encoded split out of a share-link URL', () => {
@@ -9,57 +15,38 @@ describe('sanitizeAnalyticsUrl', () => {
     expect(result).not.toContain('#')
   })
 
-  it('reports a share-link visit as its own page path', () => {
-    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#s=abc123')).toBe(
-      `https://evenkar.vercel.app${SHARED_PATH}`,
-    )
-  })
-
   it('leaves a plain app URL untouched', () => {
     expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/')).toBe(
       'https://evenkar.vercel.app/',
     )
   })
 
-  it('drops a fragment that is not a share link', () => {
+  it('drops the fragment when no share path is given', () => {
     expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#settings')).toBe(
       'https://evenkar.vercel.app/',
     )
   })
 
-  it('does not count an empty s= as a share-link visit', () => {
-    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#s=')).toBe(
-      'https://evenkar.vercel.app/',
-    )
-  })
-
-  it('finds the s param when it is not the first in the fragment', () => {
-    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#x=1&s=abc')).toBe(
+  it('rewrites the path to the share path it is given', () => {
+    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#s=abc', SHARED_PATH)).toBe(
       `https://evenkar.vercel.app${SHARED_PATH}`,
     )
   })
 
-  it('does not mistake a param merely ending in s for the share param', () => {
-    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/#xs=abc')).toBe(
-      'https://evenkar.vercel.app/',
-    )
-  })
-
-  it('ignores an implausibly long payload rather than reporting a visit', () => {
-    const huge = 'a'.repeat(5000)
-    expect(sanitizeAnalyticsUrl(`https://evenkar.vercel.app/#s=${huge}`)).toBe(
-      'https://evenkar.vercel.app/',
-    )
+  it('can report a broken share link as its own path', () => {
+    expect(
+      sanitizeAnalyticsUrl('https://evenkar.vercel.app/#s=junk', SHARED_BROKEN_PATH),
+    ).toBe(`https://evenkar.vercel.app${SHARED_BROKEN_PATH}`)
   })
 
   it('preserves the query string while dropping the fragment', () => {
-    expect(sanitizeAnalyticsUrl('https://evenkar.vercel.app/?ref=x#s=abc')).toBe(
-      `https://evenkar.vercel.app${SHARED_PATH}?ref=x`,
-    )
+    expect(
+      sanitizeAnalyticsUrl('https://evenkar.vercel.app/?ref=x#s=abc', SHARED_PATH),
+    ).toBe(`https://evenkar.vercel.app${SHARED_PATH}?ref=x`)
   })
 
   it('strips a fragment from a non-absolute URL', () => {
-    expect(sanitizeAnalyticsUrl('/#s=abc')).toBe('/')
+    expect(sanitizeAnalyticsUrl('/#s=abc', SHARED_PATH)).toBe('/')
   })
 
   it('passes through a non-string url unchanged', () => {
@@ -67,14 +54,47 @@ describe('sanitizeAnalyticsUrl', () => {
   })
 })
 
-describe('beforeSend', () => {
+describe('shareAnalyticsPath', () => {
+  it('labels a share link that rendered as the shared page', () => {
+    expect(shareAnalyticsPath('#s=abc', true)).toBe(SHARED_PATH)
+  })
+
+  it('labels a share link that failed to decode as broken', () => {
+    expect(shareAnalyticsPath('#s=junk', false)).toBe(SHARED_BROKEN_PATH)
+  })
+
+  it('does not label a visit that carried no share link', () => {
+    expect(shareAnalyticsPath('', false)).toBe(null)
+    expect(shareAnalyticsPath('#other=1', false)).toBe(null)
+  })
+
+  it('does not label an empty s= as a share link at all', () => {
+    // Nothing was actually shared, so this is neither a view nor a broken link.
+    expect(shareAnalyticsPath('#s=', false)).toBe(null)
+  })
+
+  it('does not label an over-long payload as a share link', () => {
+    expect(shareAnalyticsPath(`#s=${'a'.repeat(5000)}`, false)).toBe(null)
+  })
+})
+
+describe('createBeforeSend', () => {
   it('sanitizes the url of an outgoing event', () => {
+    const beforeSend = createBeforeSend(SHARED_PATH)
     const event = { type: 'pageview', url: 'https://evenkar.vercel.app/#s=abc' }
 
     expect(beforeSend(event).url).toBe(`https://evenkar.vercel.app${SHARED_PATH}`)
   })
 
+  it('reports a broken share link under the broken path', () => {
+    const beforeSend = createBeforeSend(SHARED_BROKEN_PATH)
+    const event = { type: 'pageview', url: 'https://evenkar.vercel.app/#s=junk' }
+
+    expect(beforeSend(event).url).toBe(`https://evenkar.vercel.app${SHARED_BROKEN_PATH}`)
+  })
+
   it('keeps the event fields it does not own', () => {
+    const beforeSend = createBeforeSend(null)
     const event = { type: 'pageview', url: 'https://evenkar.vercel.app/', extra: 1 }
 
     expect(beforeSend(event)).toEqual({
@@ -85,6 +105,7 @@ describe('beforeSend', () => {
   })
 
   it('does not mutate the event it was given', () => {
+    const beforeSend = createBeforeSend(SHARED_PATH)
     const event = { type: 'pageview', url: 'https://evenkar.vercel.app/#s=abc' }
     beforeSend(event)
 
@@ -92,6 +113,6 @@ describe('beforeSend', () => {
   })
 
   it('tolerates a missing event', () => {
-    expect(beforeSend(null)).toBe(null)
+    expect(createBeforeSend(null)(null)).toBe(null)
   })
 })

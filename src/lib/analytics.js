@@ -1,35 +1,42 @@
-// URL sanitizer for Vercel Web Analytics.
+// URL sanitizer and page labelling for Vercel Web Analytics.
 //
 // Share links carry the WHOLE split in the URL fragment (`#s=…`, see
 // share-link.js). The fragment is never sent to a server by the browser, but
 // analytics JS runs in the page: it reads location.href — fragment included —
-// and POSTs it. So the fragment has to be stripped here, or every shared split
-// (names and amounts) would be handed to the analytics vendor.
+// and POSTs it. Verified in a browser that an unguarded <Analytics /> sends the
+// full payload; Vercel does NOT strip fragments. So stripping it here is
+// load-bearing, not belt-and-braces.
 //
-// Stripping it would also make every share-link visit look like a plain '/'
-// hit, so a recognised share link is reported as its own SHARED_PATH page
-// instead. That's what makes "how many people opened a shared split" answerable
-// from the Pages breakdown.
+// Stripping alone would make every share-link visit look like a plain '/' hit,
+// so a share-link visit is reported under its own synthetic path instead. That's
+// what makes "how many people opened a shared split" answerable from the Pages
+// breakdown.
 
-import { MAX_URL_LENGTH } from './share-link.js'
+import { readShareParam } from './share-link.js'
 
-// Synthetic path for share-link visits. No such route exists — the app is a
-// single page — it's purely an analytics label.
+// Synthetic paths for share-link visits. Neither route exists — the app is a
+// single page — they're purely analytics labels.
 export const SHARED_PATH = '/shared'
+// A link that carried a payload we couldn't decode: truncated by a messaging
+// app, hand-edited, or built by an older/newer version of the wire format. The
+// viewer sees the normal editor, so counting these under SHARED_PATH would
+// overstate reach — they're tracked separately because a rising count here means
+// links are breaking in transit.
+export const SHARED_BROKEN_PATH = '/shared-broken'
 
-// Mirrors readSharedFromHash's extraction (share-link.js) so the two agree on
-// what counts as a share link. Deliberately a cheap presence+bounds check
-// rather than a real decode: decodeSplit mints throwaway ids, and this runs on
-// every page event.
-function hasSharePayload(hash) {
-  const match = hash.replace(/^#/, '').match(/(?:^|&)s=([^&]*)/)
-  const s = match ? match[1] : null
-  return Boolean(s) && s.length <= MAX_URL_LENGTH
+// Decides which page a visit should be reported as. `decoded` is whether the
+// app actually resolved the link into a viewable split (i.e. readSharedFromHash
+// returned non-null) — passing the real render outcome in, rather than
+// re-deriving it, keeps this from drifting away from decodeSplit's rules.
+// Returns null for an ordinary visit that carried no share link.
+export function shareAnalyticsPath(hash, decoded) {
+  if (readShareParam(hash) === null) return null
+  return decoded ? SHARED_PATH : SHARED_BROKEN_PATH
 }
 
-// Returns the URL with any fragment removed, rewritten to SHARED_PATH when the
-// fragment held a share payload. Non-string input passes through untouched.
-export function sanitizeAnalyticsUrl(url) {
+// Returns the URL with any fragment removed, its path replaced by `sharePath`
+// when one is given. Non-string input passes through untouched.
+export function sanitizeAnalyticsUrl(url, sharePath = null) {
   if (typeof url !== 'string' || !url) return url
 
   let parsed
@@ -42,16 +49,18 @@ export function sanitizeAnalyticsUrl(url) {
     return hashIndex === -1 ? url : url.slice(0, hashIndex)
   }
 
-  const shared = hasSharePayload(parsed.hash)
   parsed.hash = ''
-  if (shared) parsed.pathname = SHARED_PATH
+  if (sharePath) parsed.pathname = sharePath
   return parsed.toString()
 }
 
-// beforeSend hook for <Analytics />: Vercel runs every event through this in the
-// browser before it leaves. Returns a copy with the url sanitized (returning
-// null would drop the event entirely).
-export function beforeSend(event) {
-  if (!event) return event
-  return { ...event, url: sanitizeAnalyticsUrl(event.url) }
+// Builds the beforeSend hook for <Analytics />. Vercel runs every event through
+// it in the browser before the event leaves, so this is the last place the
+// fragment can be removed. Returns a copy with the url sanitized (returning null
+// instead would drop the event entirely).
+export function createBeforeSend(sharePath) {
+  return function beforeSend(event) {
+    if (!event) return event
+    return { ...event, url: sanitizeAnalyticsUrl(event.url, sharePath) }
+  }
 }

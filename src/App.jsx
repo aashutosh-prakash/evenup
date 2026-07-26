@@ -1,9 +1,9 @@
-import { useReducer, useEffect, useState } from 'react'
+import { useReducer, useEffect, useMemo, useState } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import { reducer, loadState, saveState } from './state/store.js'
 import { MIN_PEOPLE } from './lib/expense.js'
 import { requestPersistentStorage } from './lib/platform.js'
-import { beforeSend } from './lib/analytics.js'
+import { createBeforeSend, shareAnalyticsPath } from './lib/analytics.js'
 import { readSharedFromHash } from './lib/share-link.js'
 import Logo from './components/Logo/Logo.jsx'
 import PeoplePanel from './components/PeoplePanel/PeoplePanel.jsx'
@@ -64,6 +64,15 @@ export default function App() {
     requestPersistentStorage()
   }, [])
 
+  // Label this visit for analytics off the REAL outcome: `shared` is non-null
+  // only when the link decoded into a viewable split, so a link that arrived
+  // truncated or corrupt is counted as broken rather than as reach. Recomputed
+  // whenever `shared` flips (opening a link, or exiting one).
+  const analyticsBeforeSend = useMemo(
+    () => createBeforeSend(shareAnalyticsPath(window.location.hash, Boolean(shared))),
+    [shared],
+  )
+
   // Dim the expenses column during onboarding — before there are enough people
   // AND before any expense exists. Once an expense is entered it stays fully
   // visible/editable even if people later drop below the minimum.
@@ -72,13 +81,13 @@ export default function App() {
   // A share link takes over the whole screen with a read-only view. Placed
   // after all hooks so hook order stays stable across renders.
   if (shared) {
-    // Analytics renders here too: share-link opens are counted as their own
-    // page (SHARED_PATH) so we can see how many people a shared split reaches.
-    // beforeSend strips the #s= payload first — see lib/analytics.js.
+    // Analytics renders here too, so a share-link open is counted as its own
+    // page and we can see how many people a shared split reaches. beforeSend
+    // strips the #s= payload before anything is sent — see lib/analytics.js.
     return (
       <>
         <SharedView split={shared} onSave={saveSharedCopy} onExit={exitShared} />
-        <Analytics beforeSend={beforeSend} />
+        <Analytics beforeSend={analyticsBeforeSend} />
       </>
     )
   }
@@ -124,7 +133,7 @@ export default function App() {
 
       <AppFooter />
       <PWAUpdater />
-      <Analytics beforeSend={beforeSend} />
+      <Analytics beforeSend={analyticsBeforeSend} />
     </div>
   )
 }

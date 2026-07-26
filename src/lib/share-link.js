@@ -191,15 +191,27 @@ export function composeShareUrl(
   return url
 }
 
-// Reads the 's' param out of a location hash and decodes it. Returns null when
-// the param is absent or fails to decode.
-export function readSharedFromHash(hash = window.location.hash) {
+// Extracts the raw 's' value out of a location hash WITHOUT decoding it, or
+// null when it's absent or implausible. Split out from readSharedFromHash so
+// callers that only need to know "a share link was opened" — analytics, which
+// must not pay for a decode — share ONE definition of what the param looks like.
+export function readShareParam(hash = window.location.hash) {
   // Extract the raw `s=` value WITHOUT URL-decoding — lz-string's encoded output
   // can contain '+', which URLSearchParams would corrupt into spaces.
-  const match = hash.replace(/^#/, '').match(/(?:^|&)s=([^&]*)/)
+  const match = String(hash)
+    .replace(/^#/, '')
+    .match(/(?:^|&)s=([^&]*)/)
   const s = match ? match[1] : null
   // Reject implausibly long input before allocating (see MAX_PAYLOAD_LENGTH).
   if (!s || s.length > MAX_PAYLOAD_LENGTH) return null
+  return s
+}
+
+// Reads the 's' param out of a location hash and decodes it. Returns null when
+// the param is absent or fails to decode.
+export function readSharedFromHash(hash = window.location.hash) {
+  const s = readShareParam(hash)
+  if (!s) return null
   return decodeSplit(s)
 }
 
